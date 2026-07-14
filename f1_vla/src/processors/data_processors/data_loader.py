@@ -1,9 +1,45 @@
+import contextlib
+import os
+import pathlib
+import time
 import numpy as np
 from dataclasses import dataclass
 from typing import SupportsIndex, Sequence
 
 import torch
 from torch.utils.data import Dataset
+
+
+@contextlib.contextmanager
+def _fast_path_is_file():
+    """Speed up LeRobotDataset's startup existence-check on network filesystems.
+
+    LeRobotDataset.__init__ calls Path.is_file() once per episode/video file
+    (hundreds of thousands of calls for large datasets like Bridge). Each call is
+    a separate network round-trip on beegfs (measured: no client-side caching, so
+    repeat stats don't get faster), which alone can take hours. Listing each
+    parent directory once (os.listdir, ~0.03s for ~1000 entries) and checking
+    membership in that set instead cuts this from ~266k round-trips to ~270,
+    turning hours into seconds. This only patches pathlib.Path for the duration
+    of dataset construction and restores the original method afterward.
+    """
+    original_is_file = pathlib.Path.is_file
+    dir_listing_cache = {}
+
+    def fast_is_file(self):
+        parent = self.parent
+        if parent not in dir_listing_cache:
+            try:
+                dir_listing_cache[parent] = set(os.listdir(parent))
+            except (FileNotFoundError, NotADirectoryError):
+                dir_listing_cache[parent] = set()
+        return self.name in dir_listing_cache[parent]
+
+    pathlib.Path.is_file = fast_is_file
+    try:
+        yield
+    finally:
+        pathlib.Path.is_file = original_is_file
 
 from lerobot.datasets.lerobot_dataset import (
     LeRobotDataset,
@@ -384,7 +420,10 @@ def create_data(
     for ds_name, ds_config in dataset_config.items():
         if isinstance(ds_config.local_path, str):
             # to handle the case that the data path is a single path
+            print(f"[create_data] {ds_name}: loading metadata...", flush=True)
+            _t0 = time.time()
             ds_meta = LeRobotDatasetMetadata(ds_name, root=ds_config.local_path)
+            print(f"[create_data] {ds_name}: metadata loaded in {time.time() - _t0:.1f}s", flush=True)
             delta_timestamps = {
                 **{
                     key: 
@@ -400,12 +439,17 @@ def create_data(
                     for key in ds_config.action_keys
                 }
             }
-            training_dataset = LeRobotDataset(
-                ds_config.local_path,
-                delta_timestamps=delta_timestamps,
-                # stage=stage,
-                video_backend="pyav"
-            )
+            print(f"[create_data] {ds_name}: building LeRobotDataset (scans all episode/video files)...", flush=True)
+            _t0 = time.time()
+            with _fast_path_is_file():
+                training_dataset = LeRobotDataset(
+                    ds_config.local_path,
+                    delta_timestamps=delta_timestamps,
+                    # stage=stage,
+                    video_backend="pyav"
+                )
+            print(f"[create_data] {ds_name}: LeRobotDataset built in {time.time() - _t0:.1f}s "
+                  f"({training_dataset.num_episodes} episodes, {training_dataset.num_frames} frames)", flush=True)
             meta_info = {
                 "num_episodes": training_dataset.num_episodes, 
                 "num_frames": training_dataset.num_frames,
@@ -433,11 +477,12 @@ def create_data(
                     for key in ds_config.action_keys
                 }
             }
-            training_dataset = MultiLeRobotDataset(
-                local_paths, 
-                delta_timestamps=delta_timestamps, 
-                # stage=stage
-            )
+            with _fast_path_is_file():
+                training_dataset = MultiLeRobotDataset(
+                    local_paths,
+                    delta_timestamps=delta_timestamps,
+                    # stage=stage
+                )
             meta_info = {
                 "num_episodes": training_dataset.num_episodes, 
                 "num_frames": training_dataset.num_frames,
