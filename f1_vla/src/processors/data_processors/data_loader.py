@@ -444,6 +444,7 @@ def create_data(
             with _fast_path_is_file():
                 training_dataset = LeRobotDataset(
                     ds_config.local_path,
+                    episodes=list(range(ds_meta.total_episodes)),
                     delta_timestamps=delta_timestamps,
                     # stage=stage,
                     video_backend="pyav"
