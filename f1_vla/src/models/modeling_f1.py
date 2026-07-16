@@ -124,7 +124,7 @@ class F1FlowMatching(nn.Module):
         for params in self.state_proj.parameters():
             params.requires_grad = self.train_state_proj
 
-        if training_args.train_gen_expert_only:
+        if self.train_gen_expert_only:
             freeze_modules = ["state_proj", "action_in_proj", "action_out_proj", "action_time_mlp_in", "action_time_mlp_out"]
             for name, param in self.named_parameters():
                 if any (x in name for x in freeze_modules):

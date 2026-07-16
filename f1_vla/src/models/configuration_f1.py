@@ -143,16 +143,20 @@ class F1Config(PretrainedConfig):
             if hasattr(self.gen_expert_config, 'vae') and isinstance(self.gen_expert_config.vae, dict):
                 vae_dict = self.gen_expert_config.vae
                 self.gen_expert_config.vae = DictWithAttrAccess(vae_dict)
-
-            vae_dict = {
-                "vae_ckpt": None,
-                "vocab_size": 4096,
-                "z_channels": 32,
-                "ch": 160,
-                "test_mode": True,
-                "share_quant_resi": 4,
-            }
-            self.gen_expert_config.vae = DictWithAttrAccess(vae_dict)
+            elif not hasattr(self.gen_expert_config, 'vae'):
+                # Fresh construction (no vae config supplied at all) -> fall back to
+                # defaults. Do NOT reach here when a real vae dict was just converted
+                # above, or it silently discards a loaded vae_ckpt path (e.g. when
+                # reconstructing this config from a saved checkpoint's config.json).
+                vae_dict = {
+                    "vae_ckpt": None,
+                    "vocab_size": 4096,
+                    "z_channels": 32,
+                    "ch": 160,
+                    "test_mode": True,
+                    "share_quant_resi": 4,
+                }
+                self.gen_expert_config.vae = DictWithAttrAccess(vae_dict)
 
         self.act_expert_config = act_expert_config
         if isinstance(self.act_expert_config, dict):
