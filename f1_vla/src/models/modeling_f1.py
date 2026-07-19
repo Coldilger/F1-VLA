@@ -660,7 +660,6 @@ class F1FlowMatching(nn.Module):
             inputs_embeds=inputs_embeds,
             use_cache=self.config.use_cache,
             fill_kv_cache=False,
-            is_eval=True,
         )
         suffix_out = outputs_embeds[-1]
         suffix_out = suffix_out[:, -self.config.chunk_size :]
