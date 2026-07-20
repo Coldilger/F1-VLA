@@ -99,3 +99,64 @@ theoretically well-motivated but empirically harmful (#3), and caught a run whos
 0.0% was actually a stale cached result — the evaluator silently skips episodes
 whose output video already exists, so every experiment needs its own
 `--additional-env-save-tags`, and every run's `already done` count must be 0.
+
+## Final eval: 3 seeds x 24 episodes per task
+
+The world-model head samples (top_k/top_p), so rollouts are stochastic. A single
+24-episode run swings a lot — the same config scored 29.2% and 45.8% on the carrot
+task on different seeds — so every number below is the mean of 3 seeds.
+
+All 12 runs valid (0 skipped episodes, 0 tracebacks).
+
+| task | seeds (0/1/2) | mean | sd | paper | delta |
+|---|---|---|---|---|---|
+| Put Carrot on Plate | 29.2 / 45.8 / 41.7 | **38.9%** | 8.6 | 70.8% | **-31.9** |
+| Put Spoon on Towel | 50.0 / 45.8 / 45.8 | **47.2%** | 2.4 | 50.0% | -2.8 |
+| Stack Green Cube | 33.3 / 45.8 / 33.3 | **37.5%** | 7.2 | 50.0% | -12.5 |
+| Put Eggplant in Basket | 70.8 / 70.8 / 66.7 | **69.4%** | 2.4 | 66.7% | **+2.7** |
+| **average** | | **48.2%** | | **59.4%** | **-11.1** |
+
+Paper column = the Success values of the "F1 (Ours), Pretrained ✔" row of Table 3.
+Note the paper's headline 72.9% is its "Overall Average" column, which averages
+Grasp *and* Success; the comparable success-only average is 59.4%.
+
+The gap is not uniform, which is the informative part: spoon and eggplant are at
+parity (within seed noise), while carrot is 32 points down. Seed variance splits
+the same way — sd ~2.4 on the two tasks we match, sd ~7-9 on the two we don't.
+
+## Grasp vs Success breakdown (seed 0)
+
+| task | grasp | paper grasp | success | paper success |
+|---|---|---|---|---|
+| Carrot | 58% | 87.5% | 29% | 70.8% |
+| Spoon | 62% | 70.8% | 50% | 50.0% |
+| Stack | 70% | 87.5% | 33% | 50.0% |
+| Eggplant | 91% | 100% | 70% | 66.7% |
+
+We lose far more between grasping and placing than the paper does: carrot
+58->29 (half of all grasps dropped) vs the paper's 87.5->70.8, and stack 70->33
+vs 87.5->50. Transport/placement, not reaching, is where our runs fail.
+
+## Root cause hypothesis: action chunk size
+
+| source | chunk_size |
+|---|---|
+| authors' released stage-2 checkpoint (`InternRobotics/F1-VLA`) | **30** |
+| repo default `f1_vla/config/f1_config.json` | 50 |
+| **our finetune** (inherited from `debug_test.yaml`) | **4** |
+
+We finetuned a model that plans only 4 action steps (0.8s at 5 Hz) ahead, where
+the authors trained with 30. This was copied unnoticed from the repo's *debug*
+config when only the dataset section was swapped for bridge.
+
+Three independent observations line up with this being the remaining gap:
+1. The loss is concentrated in transport/placement (see table above), which is
+   the phase needing sustained coherent motion.
+2. The two tasks we match are the ones needing least sustained precision; the two
+   we lose are precise placements (carrot onto plate, cube onto cube).
+3. Eggplant — the one task where we beat the paper — is also the only one with a
+   120-step budget instead of 60, i.e. twice the time to recover from a myopic
+   plan.
+
+Next step: refinetune with `chunk_size: 30` to match the checkpoint we started
+from.

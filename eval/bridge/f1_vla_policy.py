@@ -79,6 +79,7 @@ class F1VLAInference:
         control_freq: float = 5.0,
         action_dim: int = 7,
         state_dim: int = 8,
+        seed: int | None = None,
     ):
         self.device = device
         self.policy = F1_VLA.from_pretrained(checkpoint_path).to(device)
@@ -122,6 +123,15 @@ class F1VLAInference:
                 T.ToTensor(),  # HWC uint8 [0,255] -> CHW float [0,1]
             ]
         )
+
+        # The world-model head samples (top_k/top_p), so rollouts are stochastic.
+        # Seeding it makes a run reproducible and lets us average over seeds to
+        # get error bars instead of one noisy 24-episode point estimate.
+        self.seed = seed
+        self._rng = None
+        if seed is not None:
+            self._rng = torch.Generator(device=device)
+            self._rng.manual_seed(seed)
 
         self.task_description = None
         self.image_history: deque = deque(maxlen=n_obs_img_steps)
@@ -205,7 +215,7 @@ class F1VLAInference:
             "task": [task_description],
         }
         with torch.no_grad():
-            actions = self.policy.select_action_with_world_model(batch)  # (1, chunk_size, action_dim)
+            actions = self.policy.select_action_with_world_model(batch, rng=self._rng)  # (1, chunk_size, action_dim)
         actions = actions[0].cpu()
         actions = actions * self.action_std + self.action_mean  # unnormalize to physical units
         return actions.numpy()
