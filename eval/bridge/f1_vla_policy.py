@@ -127,6 +127,7 @@ class F1VLAInference:
         self.image_history: deque = deque(maxlen=n_obs_img_steps)
         self.action_buffer = None
         self.action_buffer_idx = 0
+        self._ref_rot = None
 
     def reset(self, task_description: str) -> None:
         self.policy.reset()
@@ -135,6 +136,7 @@ class F1VLAInference:
         self.action_buffer = None
         self.action_buffer_idx = 0
         self._step_count = 0
+        self._ref_rot = None
 
     def _to_training_resolution(self, image: np.ndarray) -> Image.Image:
         """SimplerEnv renders 480x640 (4:3); bridge_orig training frames are
@@ -163,7 +165,21 @@ class F1VLAInference:
 
     def _build_state(self, ee_pose_proprio, gripper_proprio: float) -> torch.Tensor:
         pos = np.asarray(ee_pose_proprio.p, dtype=np.float32)
-        rpy = Rotation.from_quat(ee_pose_proprio.q, scalar_first=True).as_euler("xyz").astype(np.float32)
+        rot = Rotation.from_quat(ee_pose_proprio.q, scalar_first=True)
+        # Bridge records EE orientation as small angles centred on zero (measured
+        # over 40 episodes: roll/pitch/yaw means ~0.00/-0.09/0.10, |angle| < 1.6),
+        # i.e. relative to the canonical gripper-down home pose. SimplerEnv's
+        # ee_pose_at_base is absolute, and at rest yields ~(-3.06, 1.51, -3.08)
+        # in scipy 'xyz' euler — a ~93 deg rotation that is nowhere in the
+        # training distribution (and sits at the pitch=pi/2 gimbal singularity).
+        # No plain euler order fixes this (all 12 were checked); the mismatch is
+        # the reference frame, not the ordering. So express rotation relative to
+        # the pose captured at episode reset, which reproduces the training
+        # structure: ~zero at episode start, drifting as the arm moves.
+        if self._ref_rot is None:
+            self._ref_rot = rot
+        rel_rot = self._ref_rot.inv() * rot
+        rpy = rel_rot.as_euler("xyz").astype(np.float32)
         state_raw = np.concatenate([pos, rpy, [0.0], [float(gripper_proprio)]]).astype(np.float32)
         state = torch.from_numpy(state_raw)
         state_norm = (state - self.state_mean) / self._state_std_safe

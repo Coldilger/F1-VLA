@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=f1_eval_carrot24
+#SBATCH --job-name=f1_ev_carrot
 #SBATCH --partition=short_gpunew
 #SBATCH --gres=gpu:H100:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=01:00:00
-#SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/eval-carrot24-%j.out
+#SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/eval-carrot-%j.out
 
 # libvulkan.so.1 now lives in the conda env's lib dir (in $HOME, purge-safe);
 # sapien finds it automatically, no LD_LIBRARY_PATH needed. (The earlier
@@ -32,7 +32,7 @@ cd "$SIMPLER"
   --rgb-overlay-path ManiSkill2_real2sim/data/real_inpainting/bridge_real_eval_1.png \
   --robot-init-x 0.147 0.147 1 --robot-init-y 0.028 0.028 1 \
   --obj-variation-mode episode --obj-episode-range 0 24 \
-  --additional-env-save-tags fixed_v4_relrot \
+  --additional-env-save-tags full_v4 \
   --robot-init-rot-quat-center 0 0 0 1 --robot-init-rot-rpy-range 0 0 1 0 0 1 0 0 1 \
   --vam-experiment-name unused --vam-video-model-path unused --vam-action-model-path unused \
   --vam-dataset-statistics-path unused --vam-img-horizon 0 --vam-lowdim-horizon 0 \
