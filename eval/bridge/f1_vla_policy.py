@@ -36,18 +36,17 @@ SimplerEnv/ManiSkill2 environment is actually installed and runnable):
    the biggest unverified assumption here: confirm the model accepts a T=4
    history tensor (not T=5) once you can actually run a forward pass.
 
-4. Bridge's raw action convention (x,y,z,roll,pitch,yaw,gripper) is assumed to
-   already match the delta-position + delta-rotvec convention SimplerEnv's
-   widowx `arm_pd_ee_target_delta_pose_align2_gripper_pd_joint_pos` controller
-   expects directly (world_vector=delta xyz, rot_axangle=delta rotvec), since
-   this is the standard OXE/RT-1-style action space SimplerEnv's widowx setup
-   was built around. Unlike VAMInference, no absolute-pose-tracking/6D-rotation
-   conversion is implemented here. If the robot's motion looks wrong (jumpy,
-   consistently off in one axis, gripper direction flipped), this is the first
-   place to look — start by checking whether roll/pitch/yaw here need reordering
-   or sign flips against SimplerEnv's rotvec convention, and whether gripper
-   needs inverting/rescaling (Bridge/RT-1 gripper conventions vary: 0=open vs
-   0=closed differs across datasets).
+4. Bridge's raw action (x,y,z,roll,pitch,yaw,gripper) needs two conversions
+   before SimplerEnv's widowx controller can use it. An earlier version of this
+   file assumed it could be passed through directly; that was WRONG and produced
+   0/24 success on PutCarrotOnPlateInScene (the model reached for and brushed
+   the correct object but could never hold it). The conversions below now mirror
+   SimplerEnv's own reference implementation for this exact action convention
+   (simpler_env/policies/octo/octo_model.py:180-238, widowx_bridge branch):
+     - rotation: euler (roll,pitch,yaw) -> axis-angle via euler2axangle
+     - gripper: 0=close/1=open -> binarize at 0.5 and map to -1=close/+1=open
+   Verified against training data: gripper values in bridge_orig are exactly
+   {0.0, 1.0}, and rotation deltas are small euler angles (~±0.14 rad).
 """
 
 from __future__ import annotations
@@ -60,6 +59,7 @@ import torch
 import torchvision.transforms as T
 from PIL import Image
 from scipy.spatial.transform import Rotation
+from transforms3d.euler import euler2axangle
 
 from f1_vla.src.policies.f1_policy import F1_VLA
 from f1_vla.src.utils.image_tools import normalize_01_into_pm1
@@ -76,6 +76,7 @@ class F1VLAInference:
         device: str = "cuda",
         n_obs_img_steps: int = 4,
         obs_img_stride_s: float = 0.6,
+        control_freq: float = 5.0,
         action_dim: int = 7,
         state_dim: int = 8,
     ):
@@ -100,6 +101,19 @@ class F1VLAInference:
         self.obs_img_stride_s = obs_img_stride_s
         self.action_dim = action_dim
         self.state_dim = state_dim
+        # NOTE (measured, not assumed): training sampled the world-model history
+        # at obs_img_stride=3 on a 5 fps dataset, i.e. every 0.6s spanning 1.8s,
+        # so matching that at eval (push every 3rd env step at control_freq=5)
+        # *looks* like the faithful choice. It is empirically WORSE: on
+        # PutCarrotOnPlateInScene, 24 episodes, stride-3 scored 1/24 (4.2%) vs
+        # 7/24 (29.2%) for appending every step, with consecutive_grasp 80 vs
+        # 154 and src_on_target 36 vs 195. Plausible reason: with stride 3 the
+        # history is still mostly repeat-padding until step ~12 of a 60-step
+        # episode, degrading exactly the early actions that set up the grasp.
+        # Keeping the dense (every-step) history since the numbers decide.
+        # Set history_stride_steps > 1 to re-test the sparse variant.
+        self.history_stride_steps = 1
+        self._step_count = 0
 
         self._history_transform = T.Compose(
             [
@@ -120,19 +134,31 @@ class F1VLAInference:
         self.image_history.clear()
         self.action_buffer = None
         self.action_buffer_idx = 0
+        self._step_count = 0
+
+    def _to_training_resolution(self, image: np.ndarray) -> Image.Image:
+        """SimplerEnv renders 480x640 (4:3); bridge_orig training frames are
+        256x256 (square). Squash to a square first — matching what SimplerEnv's
+        own reference policies do (octo_model.py `_resize_image` resizes to a
+        square, it does not letterbox) — so the model sees the aspect ratio it
+        was trained on. Skipping this leaves the main image letterboxed with
+        black bars by F1's internal resize_with_pad, and crops ~1/3 of the
+        horizontal FOV off the world-model history frames via CenterCrop; the
+        model saw neither during training."""
+        return Image.fromarray(image).resize((FINAL_RESO, FINAL_RESO), Image.LANCZOS)
 
     def _preprocess_main_image(self, image: np.ndarray) -> torch.Tensor:
-        """Raw HWC uint8 -> CHW float [0,1]. F1's own resize_with_pad + rescale
-        to [-1,1] happens inside select_action_with_world_model; we only need
-        to hand it a plain [0,1] CHW tensor."""
-        img = torch.from_numpy(image).float() / 255.0
+        """Raw HWC uint8 -> square CHW float [0,1]. F1's own resize_with_pad +
+        rescale to [-1,1] happens inside select_action_with_world_model; on a
+        square input that resize is a clean no-pad downscale to 224x224."""
+        img = torch.from_numpy(np.asarray(self._to_training_resolution(image))).float() / 255.0
         return img.permute(2, 0, 1)
 
     def _preprocess_history_image(self, image: np.ndarray) -> torch.Tensor:
         """Replicates the training-time gen-expert transform: Resize(288,
-        LANCZOS) -> CenterCrop(256) -> ToTensor -> normalize_01_into_pm1."""
-        pil_img = Image.fromarray(image)
-        img = self._history_transform(pil_img)  # CHW float [0,1]
+        LANCZOS) -> CenterCrop(256) -> ToTensor -> normalize_01_into_pm1,
+        applied to a square frame as in training."""
+        img = self._history_transform(self._to_training_resolution(image))  # CHW float [0,1]
         return normalize_01_into_pm1(img)  # CHW float [-1,1]
 
     def _build_state(self, ee_pose_proprio, gripper_proprio: float) -> torch.Tensor:
@@ -169,7 +195,12 @@ class F1VLAInference:
         return actions.numpy()
 
     def step(self, image: np.ndarray, task_description: str, ee_pose_proprio, gripper_proprio) -> dict:
-        self.image_history.append(self._preprocess_history_image(image))
+        # Push into the world-model history only every Nth env step, so the
+        # window matches the 0.6s spacing / 1.8s span the model trained on.
+        # (Always seed it on the very first step so it is never empty.)
+        if self._step_count % self.history_stride_steps == 0 or not self.image_history:
+            self.image_history.append(self._preprocess_history_image(image))
+        self._step_count += 1
         self._current_state = self._build_state(ee_pose_proprio, gripper_proprio)
 
         if self.action_buffer is None:
@@ -181,10 +212,24 @@ class F1VLAInference:
         if self.action_buffer_idx >= self.chunk_size:
             self.action_buffer = None
 
+        # Convert the raw Bridge action to what SimplerEnv's widowx controller
+        # expects. This mirrors SimplerEnv's own octo_model.py widowx_bridge
+        # branch exactly (simpler_env/policies/octo/octo_model.py:180-238) —
+        # both conversions below are load-bearing:
+        #   - rotation: Bridge actions store euler (roll,pitch,yaw); the
+        #     controller wants an axis-angle (rotation vector). Passing euler
+        #     straight through is wrong (they only coincide for tiny angles).
+        #   - gripper: Bridge encodes 0=close / 1=open, but the controller takes
+        #     [-1,+1] (normalize_action=True -> scaled into the joint range),
+        #     so raw 0 would land mid-range = half-open and the gripper could
+        #     never actually close on an object.
+        roll, pitch, yaw = np.asarray(pred[3:6], dtype=np.float64)
+        rot_ax, rot_angle = euler2axangle(roll, pitch, yaw)
+
         return {
             "world_vector": pred[0:3].astype(np.float32),
-            "rot_axangle": pred[3:6].astype(np.float32),
-            "gripper": np.array([pred[6]], dtype=np.float32),
+            "rot_axangle": (rot_ax * rot_angle).astype(np.float32),
+            "gripper": np.array([2.0 * (pred[6] > 0.5) - 1.0], dtype=np.float32),
             "terminate_episode": np.array([0.0], dtype=np.float32),
         }
 
