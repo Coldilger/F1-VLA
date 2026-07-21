@@ -3,3 +3,6 @@ __pycache__/
 outputs/
 slurm/logs/
 wandb/
+
+# vendored SimplerEnv: keep the code+assets, not our rollout outputs
+eval/bridge/SimplerEnv/results/

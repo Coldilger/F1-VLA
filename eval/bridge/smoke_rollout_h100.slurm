@@ -10,11 +10,11 @@
 # libvulkan.so.1 now lives in the conda env's lib dir (in $HOME, purge-safe);
 # sapien finds it automatically, no LD_LIBRARY_PATH needed. (The earlier
 # scratch/vulkan_libs path got auto-purged because tar preserved its 2022 mtime.)
-export MS2_REAL2SIM_ASSET_DIR=/mnt/beegfsnew/scratch/3295540/mimic-video-project/mimic-video/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
+export MS2_REAL2SIM_ASSET_DIR=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
 export DISPLAY=""
 export HF_HOME=/mnt/beegfsnew/scratch/3295540/hf_cache
 
-SIMPLER=/mnt/beegfsnew/scratch/3295540/mimic-video-project/mimic-video/eval/bridge/SimplerEnv
+SIMPLER=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv
 cd "$SIMPLER"
 
 # Minimal 3-episode rollout on one Bridge task to shake out format mismatches in

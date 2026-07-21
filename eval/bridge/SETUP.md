@@ -29,9 +29,13 @@ $EVAL_PIP install "numpy==1.26.4" "gymnasium>=0.28.1,<1.0" h5py pyyaml tqdm GitP
     tabulate "gdown>=4.6.0" imageio "imageio[ffmpeg]" trimesh rtree ruckig
 $EVAL_PIP install matplotlib mediapy   # SimplerEnv's visualization.py needs these
 
-# 3. Editable-install the vendored simulator + benchmark (--no-deps so they
-#    don't re-resolve numpy up to 2.x)
-SIMPLER=/mnt/beegfsnew/scratch/3295540/mimic-video-project/mimic-video/eval/bridge/SimplerEnv
+# 3. Editable-install our OWN vendored simulator + benchmark (--no-deps so they
+#    don't re-resolve numpy up to 2.x). SimplerEnv/ManiSkill2 live inside this
+#    repo (eval/bridge/SimplerEnv) — originally copied from mimic-video-project,
+#    but we no longer depend on that project: it could be moved, changed or
+#    purged from scratch without breaking our eval, and our rollout results no
+#    longer land in someone else's results/ directory.
+SIMPLER=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv
 (cd "$SIMPLER/ManiSkill2_real2sim" && $EVAL_PIP install -e . --no-deps)
 (cd "$SIMPLER" && $EVAL_PIP install -e . --no-deps)
 ```
@@ -70,15 +74,27 @@ at `/etc/vulkan/icd.d/nvidia_icd.json` — nothing to install for that.
 ## Runtime environment variables (set in any eval sbatch/srun job)
 
 ```bash
-export MS2_REAL2SIM_ASSET_DIR=/mnt/beegfsnew/scratch/3295540/mimic-video-project/mimic-video/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
+export MS2_REAL2SIM_ASSET_DIR=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
 export DISPLAY=""   # headless; SAPIEN warns about GLFW/X11 then correctly renders offscreen
 ```
 
 libvulkan needs no env var (it lives in the conda env lib). Bridge scene assets
-(`bridge_table_1_v1.glb`, etc.) are already under `MS2_REAL2SIM_ASSET_DIR` (came
-with the vendored mimic-video-project copy). NOTE: that asset dir is on scratch —
-if it ever gets purged, re-obtain the SimplerEnv/ManiSkill2 real_inpainting +
-stage assets.
+(`bridge_table_1_v1.glb`, etc.) ship inside our vendored copy under
+`MS2_REAL2SIM_ASSET_DIR` (~54 MB total including code). NOTE: this is on scratch —
+if it is ever purged, re-obtain the SimplerEnv/ManiSkill2 real_inpainting + stage
+assets (or restore from the git history / a home-dir backup).
+
+## Where rollouts land
+
+SimplerEnv hardcodes `logging_dir="./results"`, relative to the working dir, and
+the sbatch scripts `cd` into `eval/bridge/SimplerEnv` (needed so its relative
+asset/overlay paths resolve). So rollout videos + per-episode diagnostic PNGs go to
+`eval/bridge/SimplerEnv/results/<ckpt>/<scene>/<control_mode>/<task>_<tag>/<robot-pose>/`.
+Each filename encodes that episode's outcome, e.g.
+`failure_obj_episode_13_..._is_src_obj_grasped_True_consecutive_grasp_False_src_on_target_False.mp4`
+— which is how the grasp/success tallies in RESULTS.md were computed. Always give
+each experiment its own `--additional-env-save-tags`, or the evaluator will skip
+episodes whose video already exists and silently report a stale number.
 
 ## Smoke tests
 
@@ -88,7 +104,7 @@ stage assets.
 
 ## Note on the SimplerEnv argparse
 
-This vendored copy's `get_args()` was customized by mimic-video to make 8
+Our vendored copy inherits a `get_args()` that mimic-video customized to make 8
 `--vam-*` args **required** (hardcoded for their VAM policy). Our `main_inference.py`
 uses its own `F1VLAInference` but still reuses this argparse, so the sbatch scripts
 pass dummy `--vam-* unused/0` values plus `--ckpt-path` (read only for output-dir
