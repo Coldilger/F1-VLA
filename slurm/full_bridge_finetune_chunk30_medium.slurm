@@ -10,6 +10,12 @@
 export HF_HOME=/mnt/beegfsnew/scratch/3295540/hf_cache
 export HF_HUB_DISABLE_XET=1
 export WANDB_PROJECT=f1-vla-bridge
+# Every wave is a separate sbatch job, and by default each would create its own
+# W&B run — so a multi-wave training shows up as N disconnected line segments.
+# Pinning the run id + allowing resume makes all waves append to ONE run, giving
+# a single continuous curve.
+export WANDB_RUN_ID=bridge_finetune_chunk30
+export WANDB_RESUME=allow
 cd /mnt/beegfsnew/scratch/3295540/F1-VLA
 
 # Auto-resume: if a checkpoint already exists, continue from it
