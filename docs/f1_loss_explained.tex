@@ -1,0 +1,91 @@
+% F1-VLA training objective — explanation for a report/thesis.
+% Requires: \usepackage{amsmath,amssymb}
+
+\subsection{The F1 training objective}
+
+F1 is trained with two objectives optimised jointly: an \emph{autoregressive
+next-scale prediction} loss that teaches the generation expert to imagine what
+the scene will look like next, and a \emph{flow-matching} loss that teaches the
+action expert to produce motor commands. Intuitively, the model is asked to
+answer two questions at once: \emph{``what will I see?''} and \emph{``what
+should I do?''}.
+
+\paragraph{Visual foresight as next-token prediction.}
+A frozen VQ-VAE encodes each frame into a sequence of discrete visual tokens
+drawn from a codebook of $K=4096$ entries, so an image becomes a short
+``sentence'' of visual words. Given the history of observations
+$\{o_{t-m},\dots,o_t\}$ and the language instruction $l$, the model predicts the
+tokens $z_{1:N}$ of the future frame one at a time, each conditioned on the
+tokens it has already produced:
+\begin{equation}
+    \mathcal{L}^{\mathrm{pred}}_{\mathrm{gen}}
+    = -\,\mathbb{E}_{\{o_i,l\}\sim\mathcal{D}}
+      \left[\sum_{j=1}^{N} \log p_\theta\!\left(z_j \mid \hat{z}_{1:j-1},
+      \{o_i\}_{i=t-m}^{t}, l\right)\right].
+    \label{eq:gen}
+\end{equation}
+This is ordinary cross-entropy, i.e.\ ``how surprised is the model by the
+correct visual word''. The important design choice is that the conditioning uses
+the model's \emph{own} previous predictions $\hat{z}_{1:j-1}$ rather than the
+ground-truth ones. Under teacher forcing the model would only ever be asked to
+continue perfect prefixes, and would then drift at inference time, when it must
+consume its own (possibly wrong) outputs. Conditioning on its own samples during
+training removes that train/inference mismatch and is what the authors refer to
+as distributional consistency, which in turn stabilises long-horizon rollouts.
+
+\paragraph{Action prediction by flow matching.}
+Rather than regressing the action directly, the action expert learns to
+transport Gaussian noise into an expert action. For a ground-truth action $a_t$,
+a noise sample $\varepsilon\sim\mathcal{N}(0,I)$ and a random interpolation
+coefficient $\tau\sim\mathcal{U}(0,1)$, define the intermediate point
+$a_t^{\tau} = (1-\tau)\varepsilon + \tau a_t$, which lies on the straight path
+from noise to action. The policy $\pi_\theta$ is placed at that point and asked
+in which direction to move in order to reach the action; the correct answer is
+the constant velocity $a_t - \varepsilon$:
+\begin{equation}
+    \mathcal{L}_{\mathrm{action}}
+    = \mathbb{E}_{\{a_t,o_i,q_t,l\}\sim\mathcal{D}}
+      \left\|\pi_\theta\!\left(l, \{o_i\}_{i=t-m}^{t}, q_t, a_t^{\tau}\right)
+      - (a_t - \varepsilon)\right\|^2 ,
+    \label{eq:action}
+\end{equation}
+where $q_t$ is proprioception at time $t$. At inference the action is obtained
+by sampling noise and integrating the learned vector field over a small number
+of Euler steps. The practical benefit over direct regression is multimodality:
+when several distinct actions are reasonable in a given state, a regressor is
+driven towards their (possibly invalid) mean, whereas a flow model can reach any
+of them depending on the sampled noise. The corresponding cost is that rollouts
+become stochastic, so evaluation must be averaged over seeds.
+
+\paragraph{Combined objective.}
+The two terms are optimised as a weighted sum,
+\begin{equation}
+    \mathcal{L}_{\mathrm{total}}
+    = \mathcal{L}^{\mathrm{pred}}_{\mathrm{gen}}
+      + \lambda \, \mathcal{L}_{\mathrm{action}},
+    \label{eq:total}
+\end{equation}
+so that foresight and control are learned in a single representation rather than
+in separate stages: the generation term forces the backbone to encode where the
+scene is heading, while the action term keeps that representation grounded in
+control.
+
+\paragraph{Remark on the implementation.}
+In the released code the objective is assembled with the weight placed on the
+\emph{generation} term instead of the action term,
+\begin{equation*}
+    \mathcal{L}_{\mathrm{total}}
+    = \mathcal{L}_{\mathrm{action}}
+      + \rho \, \mathcal{L}^{\mathrm{pred}}_{\mathrm{gen}},
+    \qquad \rho = 0.1 ,
+\end{equation*}
+which is Eq.~\eqref{eq:total} up to a global factor: dividing by $\rho$ recovers
+the paper's form with $\lambda = 1/\rho = 10$. Since a constant rescaling of the
+loss only rescales the gradients (and can be absorbed into the learning rate),
+the two parameterisations optimise the same objective; the action term is
+weighted an order of magnitude more heavily than visual foresight, i.e.\ the
+generation loss acts as an auxiliary signal rather than a co-equal one.
+Empirically the two terms have very different magnitudes as well
+($\mathcal{L}_{\mathrm{action}}\approx 0.2$ versus
+$\mathcal{L}^{\mathrm{pred}}_{\mathrm{gen}}\approx 3.7$ in our BridgeData~V2
+finetuning run), so after weighting they contribute comparably to the total.
