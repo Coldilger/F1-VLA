@@ -36,6 +36,14 @@ export HF_HUB_DISABLE_XET=1
 export WANDB_PROJECT=f1-vla-bridge
 export WANDB_RUN_ID=bridge_finetune_chunk30
 export WANDB_RESUME=allow
+# Compute nodes have no outbound internet (DNS resolution fails). With a pinned
+# RUN_ID + resume, wandb must contact the server to look the run up, so
+# wandb.init() blocked for 90s and then raised CommError, which killed the whole
+# training process mid-wave (job 603450, exited after 1h13m having saved nothing).
+# Offline mode writes metrics to disk instead; sync later from the login node
+# with `wandb sync wandb/offline-run-*`. Training must never depend on an
+# external service being reachable.
+export WANDB_MODE=offline
 cd /mnt/beegfsnew/scratch/3295540/F1-VLA
 
 if ls outputs/bridge_finetune_chunk30/checkpoint-* >/dev/null 2>&1; then
@@ -57,5 +65,17 @@ TRAIN_PID=$!
 wait $TRAIN_PID
 
 # Reached only if training exited on its own (finished 100k, or crashed) before
-# the time limit — in that case the TERM trap never fired, so nothing resubmits.
-echo ">>> training process exited on its own (no time-limit signal)."
+# the time limit — the TERM trap never fired, so nothing was resubmitted.
+# Distinguish the two cases loudly: a crash silently breaking the chain is what
+# happened with job 603450 (wandb CommError), and it cost hours of idle time
+# before anyone noticed. Deliberately does NOT auto-resubmit: a crash that
+# repeats would spawn an infinite job loop.
+RC=$?
+if [ -d "$OUTDIR/checkpoint-100000" ]; then
+  echo ">>> TRAINING FINISHED: checkpoint-100000 reached."
+else
+  LAST=$(ls -d "$OUTDIR"/checkpoint-* 2>/dev/null | sed 's#.*checkpoint-##' | sort -n | tail -1)
+  echo ">>> CHAIN BROKEN: training exited (rc=$RC) before the time limit at checkpoint-${LAST:-none}."
+  echo ">>> Not auto-resubmitting (a repeating crash would loop). Inspect this log, fix, then resubmit:"
+  echo ">>>   sbatch $SCRIPT"
+fi
