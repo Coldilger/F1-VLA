@@ -160,3 +160,81 @@ Three independent observations line up with this being the remaining gap:
 
 Next step: refinetune with `chunk_size: 30` to match the checkpoint we started
 from.
+
+## Table 8 of the paper: what our recipe actually mismatches
+
+The paper's appendix Table 8 gives the full training recipe per stage/task. Two
+corrections to earlier assumptions in this file:
+
+- **Action chunk size for Simpler is 8**, not 30. The 30 came from the released
+  checkpoint's `config.json`, which describes **Stage II** (pretrain). Table 8's
+  Stage III column for Simpler says 8. So the chunk30 refinetune matches neither.
+- **Our 4 was LIBERO's value**, not an arbitrary debug number: Table 8 lists
+  LIBERO = 4, and `debug_test.yaml` is a LIBERO config. We inherited the right
+  value for the wrong task.
+
+Full comparison for Stage III / Simpler:
+
+| hyperparameter | paper (Simpler) | ours | |
+|---|---|---|---|
+| Learning Rate | 5e-5 | 5e-5 | match |
+| LR Scheduler | Cosine | Cosine | match |
+| Loss Weight (Gen:Act) | 0.1:1 | 0.1:1 | match |
+| Und / Gen Resolution | 224 / 256 | 224 / 256 | match |
+| Num Predicted Scales | 4 | 4 | match |
+| Denoise Steps | 10 | 10 | match |
+| Action Chunk Size | **8** | 4 | mismatch |
+| Batch Size | **128** | 16 | mismatch |
+| Training duration | **10 epochs** | **0.85 epoch** | mismatch |
+
+On the duration row: Table 8 specifies Stage III downstream tasks in *epochs* and
+Stage I/II/LIBERO in *steps* — they are alternative parameterisations, not a
+missing value (epochs are the sensible unit when per-task dataset sizes differ,
+as the table's caption says). Our config set both `num_train_epochs: 50` and
+`max_steps: 100_000`; HF Trainer's `max_steps` silently overrides the epoch
+count, so we ran 100k steps at batch 16 = 1.6M samples = **0.85 epoch**, while
+the paper sees 18.9M samples (11.8x more). Specify epochs and drop `max_steps`
+to avoid this.
+
+## Does more training close the gap? No.
+
+Success rate vs training steps, `PutCarrotOnPlateInScene-v0`, 3 seeds x 24
+episodes per checkpoint (15 runs, 0 skipped). Uses the intermediate checkpoints
+of the chunk4 run, so this cost eval time only, no training.
+
+| checkpoint | seeds (0/1/2) | mean |
+|---|---|---|
+| 20,000 | 41.7 / 37.5 / 29.2 | **36.1%** |
+| 40,000 | 29.2 / 25.0 / 25.0 | 26.4% |
+| 60,000 | 37.5 / 25.0 / 37.5 | 33.3% |
+| 80,000 | 29.2 / 25.0 / 37.5 | 30.6% |
+| 100,000 | 37.5 / 41.7 / 29.2 | **36.1%** |
+
+Flat: 36 -> 26 -> 33 -> 31 -> 36, no trend, and 20k equals 100k exactly. The
+spread across seeds within one checkpoint (up to 12.5pp) is as large as the
+spread across checkpoints. So 5x more training bought nothing measurable, and
+"we only trained 0.85 epoch" does not explain the gap to the paper — the cause is
+more likely structural (chunk size, batch size as an optimisation regime,
+residual eval mismatch, or different Stage III data).
+
+Practical consequence: ~20k steps is enough for this configuration, i.e. ~7h per
+run instead of ~33h. Caveat: measured on one task, in our regime (batch 16,
+chunk 4); it does not test batch 128, which changes the optimisation dynamics.
+
+## Eval was not reproducible under `--f1-seed` (fixed)
+
+Evaluating the *same weights* with the *same seed* twice gave 38.9% and 36.1%
+(verified same weights: `model.safetensors` and `checkpoint-100000/model.safetensors`
+have identical key sets, identical key order, and 9/9 sampled tensors bitwise
+equal; only file metadata differs, hence differing md5).
+
+Cause: `--f1-seed` created a `torch.Generator` that only reaches the world-model
+token sampler. The flow-matching start noise comes from
+`F1FlowMatching.sample_noise`, which calls `torch.normal()` with no generator,
+i.e. the **global** torch RNG, which was never seeded. Fixed by also calling
+`torch.manual_seed` / `torch.cuda.manual_seed_all` in the wrapper.
+
+This matters for any model comparison: with ~±6pp run-to-run noise on 24
+episodes, two models differing by less than ~10pp cannot be distinguished
+without more episodes or more repeats.
+

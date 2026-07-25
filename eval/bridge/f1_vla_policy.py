@@ -132,6 +132,16 @@ class F1VLAInference:
         if seed is not None:
             self._rng = torch.Generator(device=device)
             self._rng.manual_seed(seed)
+            # The rng generator above only reaches the world-model token sampler.
+            # The flow-matching start noise comes from F1FlowMatching.sample_noise,
+            # which calls torch.normal() with no generator, i.e. the *global* torch
+            # RNG. Left unseeded, two runs of the same weights with the same
+            # --f1-seed gave 38.9% and 36.1% on the carrot task. Seed the global
+            # RNG too so a run is reproducible and model comparisons aren't
+            # confounded by sampling noise.
+            torch.manual_seed(seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(seed)
 
         self.task_description = None
         self.image_history: deque = deque(maxlen=n_obs_img_steps)
