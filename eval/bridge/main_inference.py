@@ -42,6 +42,9 @@ def parse_f1_args(argv):
     parser.add_argument("--f1-checkpoint-path", type=str, required=True)
     parser.add_argument("--f1-stats-path", type=str, required=True)
     parser.add_argument("--f1-device", type=str, default="cuda")
+    parser.add_argument("--f1-execute-steps", type=int, default=None,
+                        help="Execute only the first N actions of each predicted chunk, "
+                             "then re-observe and re-plan. Default: execute the whole chunk.")
     parser.add_argument("--f1-seed", type=int, default=None,
                         help="Seed for the world-model sampler; set to average over seeds.")
     known, remaining = parser.parse_known_args(argv)
@@ -60,6 +63,7 @@ if __name__ == "__main__":
         stats_path=f1_args.f1_stats_path,
         device=f1_args.f1_device,
         seed=f1_args.f1_seed,
+        execute_steps=f1_args.f1_execute_steps,
     )
     success_arr = maniskill2_evaluator(model, args)
     print(args)

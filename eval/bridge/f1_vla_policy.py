@@ -80,11 +80,22 @@ class F1VLAInference:
         action_dim: int = 7,
         state_dim: int = 8,
         seed: int | None = None,
+        execute_steps: int | None = None,
     ):
         self.device = device
         self.policy = F1_VLA.from_pretrained(checkpoint_path).to(device)
         self.policy.eval()
         self.chunk_size = self.policy.config.chunk_size
+        # How many of the predicted chunk_size actions are actually executed
+        # before re-observing the scene and re-planning. Defaults to the whole
+        # chunk, which is how every result up to now was measured. It matters
+        # once chunk_size is large: at chunk_size=30 with 60-step episodes the
+        # policy only ever looks at the scene twice, i.e. it is effectively
+        # open-loop, which confounds 'was the model trained badly' with 'was it
+        # driven badly'. Setting execute_steps < chunk_size gives the usual
+        # receding-horizon control and separates the two.
+        self.execute_steps = self.chunk_size if execute_steps is None else min(execute_steps, self.chunk_size)
+        assert self.execute_steps >= 1
         self.main_image_size = tuple(self.policy.config.resize_imgs_with_padding)  # (224, 224)
 
         stats = json.load(open(stats_path))
@@ -245,7 +256,7 @@ class F1VLAInference:
 
         pred = self.action_buffer[self.action_buffer_idx]
         self.action_buffer_idx += 1
-        if self.action_buffer_idx >= self.chunk_size:
+        if self.action_buffer_idx >= self.execute_steps:
             self.action_buffer = None
 
         # Convert the raw Bridge action to what SimplerEnv's widowx controller
