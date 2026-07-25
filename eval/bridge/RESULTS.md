@@ -279,3 +279,43 @@ interruption drops to ~2,000 steps (~40 min), and disk drops from 176 GB to
 ~66 GB. Any future multi-wave run should keep the checkpoint interval well below
 what one wave completes.
 
+
+## chunk_size=30: negative result (2026-07-26)
+
+Trained a second model identical to the chunk4 baseline except `chunk_size: 30`
+(100k steps, batch 16, self-chaining across 6h waves). Evaluated on the full
+4-task grid, 24 episodes, 3 seeds, same seeding fix as the chunk4 baseline.
+
+| task     | s0   | s1   | s2   | chunk30 | chunk4 baseline |
+|----------|------|------|------|---------|-----------------|
+| carrot   |  4.2 |  8.3 | 12.5 |   8.3%  | 34.7%           |
+| spoon    | 16.7 |  4.2 | 12.5 |  11.1%  | 50.0%           |
+| stack    |  0.0 |  0.0 |  0.0 |   0.0%  | 40.3%           |
+| eggplant | 29.2 | 25.0 | 12.5 |  22.2%  | 69.4%           |
+| **mean** |      |      |      | **10.4%** | **48.6%**     |
+
+Worse on every task, 4.7x worse on average, and identically zero on stack across
+all three seeds — well outside the cross-seed spread, so this is not noise.
+
+Two independent causes, both measured rather than assumed:
+
+1. **The horizon does not fit the data.** Bridge episodes average 35.6 frames
+   (7.1s at 5fps), median 35. At chunk_size=30, 32.4% of episodes are *entirely*
+   shorter than the prediction horizon, and for a uniformly sampled start inside
+   a median-length episode roughly 40% of the chunk positions fall past the end
+   and are masked out of the loss. At chunk_size=8 (the paper's Simpler value)
+   that drops to ~10%, at 4 to ~4%. Note this also makes `train_loss` across
+   chunk sizes incomparable: the masked positions contribute zeros to the mean,
+   which is why chunk30 reports 0.045 vs chunk4's 0.511 without being better.
+   (The comparison is doubly invalid — chunk4's figure averages all 100k steps
+   including the high-loss start, chunk30's only the last 10k after a resume.)
+
+2. **Executing the whole chunk open-loop.** The eval wrapper played every
+   predicted action before re-observing, i.e. 2 replans per 60-step episode at
+   chunk30 vs 15 at chunk4. Predicting 30 but executing only 8 (receding
+   horizon, `--f1-execute-steps 8`) lifted carrot from 8.3% to 22.2%.
+
+Conclusion: chunk_size=30 is wrong for Bridge; the paper's 8 is a deliberate fit
+to episode length. **But the bigger finding is (2): replanning frequency moved
+the score by 13.9pp on one task, whereas 20k vs 100k training steps moved it by
+0.0pp.** Control frequency, not training length, is where the headroom is.
