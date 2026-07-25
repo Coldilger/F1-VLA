@@ -319,3 +319,40 @@ Conclusion: chunk_size=30 is wrong for Bridge; the paper's 8 is a deliberate fit
 to episode length. **But the bigger finding is (2): replanning frequency moved
 the score by 13.9pp on one task, whereas 20k vs 100k training steps moved it by
 0.0pp.** Control frequency, not training length, is where the headroom is.
+
+### Replanning frequency is NOT a general lever (2026-07-26)
+
+The chunk30 finding above (executing 8 of 30 beat executing 30 of 30 by 13.9pp)
+suggested replanning more often might be free headroom. Tested directly on the
+chunk4 baseline, carrot, 3 seeds:
+
+| executed steps per chunk | s0   | s1   | s2   | mean  |
+|--------------------------|------|------|------|-------|
+| 1 of 4                   | 29.2 | 16.7 | 25.0 | 23.6% |
+| 2 of 4                   | 37.5 | 37.5 | 29.2 | 34.7% |
+| 4 of 4 (baseline)        | 41.7 | 25.0 | 37.5 | 34.7% |
+
+Replanning *more* often than the trained chunk does not help, and replanning
+every step actively hurts (-11.1pp). So the earlier reading was too broad: the
+chunk30 gain was not "replanning helps", it was partial repair of a horizon that
+did not fit the data. The correct rule is **execute roughly the chunk the model
+was trained to emit**.
+
+Mechanism, consistent with the model: actions are generated from fresh Gaussian
+noise via flow matching, and the policy is deliberately multimodal (going left
+around an object and going right are both valid). Playing a chunk out keeps one
+sampled intent; re-drawing noise every step re-rolls the intent every step, so
+the arm dithers between modes and completes none.
+
+Side benefit: the baseline reproduced at exactly 34.7% for a third independent
+time, reconfirming the harness is deterministic under --f1-seed.
+
+### Where the gap to the paper's 72.9% stands
+
+Ruled out by measurement: training length (20k == 100k, 0.0pp), longer action
+chunk (30 is -38.2pp), replanning frequency (not a lever). Still untested and
+now the obvious candidate: **chunk_size=8**, the value Table 8 actually lists for
+Simpler. Our 4 came from the LIBERO config, not the Simpler one, and chunk size
+is empirically the highest-leverage knob we have found (4 vs 30 = 38pp). Launched
+as `slurm/full_bridge_finetune_chunk8_selfchain.slurm`, identical to the chunk4
+baseline in every other respect (batch 16, lr 5e-5, cosine over 100k, 0.1:1 loss).
