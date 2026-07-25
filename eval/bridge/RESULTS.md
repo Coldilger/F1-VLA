@@ -238,3 +238,44 @@ This matters for any model comparison: with ~±6pp run-to-run noise on 24
 episodes, two models differing by less than ~10pp cannot be distinguished
 without more episodes or more repeats.
 
+## Seeded chunk4 baseline (re-measured after the RNG fix)
+
+All earlier numbers were measured with the flow-matching noise unseeded, so they
+were not reproducible. Re-measured the same final chunk4 weights with the fix, to
+have an apples-to-apples baseline for later comparisons:
+
+| task | seeds (0/1/2) | mean | paper | delta |
+|---|---|---|---|---|
+| Put Carrot on Plate | 41.7 / 25.0 / 37.5 | 34.7% | 70.8% | -36.1 |
+| Put Spoon on Towel | 62.5 / 41.7 / 45.8 | **50.0%** | 50.0% | +0.0 |
+| Stack Green Cube | 37.5 / 29.2 / 54.2 | 40.3% | 50.0% | -9.7 |
+| Put Eggplant in Basket | 62.5 / 58.3 / 87.5 | **69.4%** | 66.7% | +2.7 |
+| **average** | | **48.6%** | **59.4%** | **-10.8** |
+
+Reassuringly close to the unseeded measurement (48.6% vs 48.2%), so the earlier
+conclusions were noisy but not biased.
+
+Note what seeding does and does not fix: each individual seed is now
+reproducible, but the spread *across* seeds is still large (stack 29.2-54.2,
+eggplant 58.3-87.5 — up to 29pp). That spread is real sensitivity to the sampled
+noise, not measurement error. For a Bernoulli success rate around 0.4, a
+24-episode estimate has sd ~10pp, so a 3-seed mean still has a standard error of
+~5-6pp. **Two models differing by less than ~10pp cannot be separated at this
+sample size.** Since eval is cheap (~5 min per 24 episodes) and training plateaus
+early, the right budget split for a comparative study is more evaluation
+episodes, not more training steps.
+
+## Checkpoint interval was wasting GPU time
+
+`save_steps: 10_000` while a 6h wave completes roughly the same number of steps
+meant the save period coincided with the wave length, so every interrupted wave
+threw away everything since its last checkpoint. Observed directly: wave 604636
+reached step 88,173, the last checkpoint was 80,000, and the next wave resumed
+from 80,000 — **8,173 steps (~3 GPU-hours) discarded**, and this had been
+happening on every wave.
+
+Fixed to `save_steps: 2_000` with `save_total_limit: 3`: worst-case loss per
+interruption drops to ~2,000 steps (~40 min), and disk drops from 176 GB to
+~66 GB. Any future multi-wave run should keep the checkpoint interval well below
+what one wave completes.
+

@@ -60,7 +60,7 @@ exp:
     logging_strategy: steps
     logging_steps: 200
     save_strategy: steps
-    save_steps: 10_000
+    save_steps: 2_000
     eval_strategy: "no"
     eval_steps: 1_00
     eval_accumulation_steps: 1
@@ -68,7 +68,7 @@ exp:
     include_for_metrics:
       - loss
 
-    save_total_limit: 800
+    save_total_limit: 3
     overwrite_output_dir: True
     dataloader_num_workers: 12
     dataloader_pin_memory: False
