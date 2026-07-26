@@ -356,3 +356,44 @@ Simpler. Our 4 came from the LIBERO config, not the Simpler one, and chunk size
 is empirically the highest-leverage knob we have found (4 vs 30 = 38pp). Launched
 as `slurm/full_bridge_finetune_chunk8_selfchain.slurm`, identical to the chunk4
 baseline in every other respect (batch 16, lr 5e-5, cosine over 100k, 0.1:1 loss).
+
+## CORRECTION: the learning curve is NOT flat (2026-07-26)
+
+Earlier this file recorded "20k steps == 100k steps (36.1% both), so undertraining
+does not explain the gap". **That was measured on carrot only and is wrong.**
+Carrot is the one task of four where the curve happens to be flat. Full control,
+chunk4 checkpoint-20000 vs the final 100k model, 24 episodes, 3 seeds:
+
+| task     | @20k  | @100k | delta  |
+|----------|-------|-------|--------|
+| carrot   | 36.1% | 34.7% |  +1.4  |
+| spoon    | 34.7% | 50.0% | -15.3  |
+| stack    | 15.3% | 40.3% | -25.0  |
+| eggplant | 18.1% | 69.4% | -51.3  |
+| **mean** | **26.0%** | **48.6%** | **-22.6** |
+
+The score nearly doubles from 20k to 100k and shows no sign of saturating.
+
+Consequences:
+
+1. **Budget guidance reversed.** The earlier advice ("~20k steps suffice, ~7h per
+   run") was wrong; a run needs the full 100k, ~29h on one H100. Plan comparative
+   studies from that number.
+2. **chunk8 vs chunk4 must be compared at matched steps.** At 20k: chunk8 14.6%
+   vs chunk4 26.0%, i.e. -11.5pp, not the -34.0pp implied by comparing against
+   chunk4@100k. Too early to judge chunk8; its 100k run is in flight.
+3. **Undertraining is back as the leading explanation for the gap to 72.9%.**
+   Paper: 10 epochs at batch 128 (~148k steps, ~18.9M samples seen).
+   Ours: 100k steps at batch 16 = 1.6M samples = **0.845 epochs**, i.e. 11.8x
+   less data through the model, while still on the steep part of the curve.
+
+Also refuted this session (both were mine, both measured, both dead):
+
+- *"Replanning frequency is a lever."* Executing 1 or 2 of 4 does not beat 4 of 4.
+- *"The harness penalises long chunks by executing the whole chunk."* chunk8 with
+  --f1-execute-steps 4 scores 15.6% vs 14.6% at 8, and 18.1% at the reference
+  value 5 (carrot). Execution horizon is not the explanation; the ordering of
+  chunk4 > chunk8 > chunk30 by replan count was a coincidence.
+- *"train_loss tracks policy quality."* chunk4 and chunk8 have near-identical loss
+  curves (0.535 vs 0.515 at 20k, same slope) and differ 2x in success rate. Loss
+  is useless for model selection here; only rollouts count.
