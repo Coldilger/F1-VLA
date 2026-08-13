@@ -88,6 +88,7 @@ class F1_VLA(nn.Module):
         top_p: float = 0.95,
         num_samples: int = 1,
         rng: torch.Generator | None = None,
+        oracle_indices=None,
         **kwargs,
     ) -> Tensor:
         self.eval()
@@ -112,9 +113,10 @@ class F1_VLA(nn.Module):
                 lang_masks=lang_masks, 
                 state=state, 
                 world_model_input_embs=world_model_input_embs, 
-                predict_action_only=False, 
+                predict_action_only=False,
                 noise=noise,
                 top_k=top_k, top_p=top_p, num_samples=num_samples, rng=rng,
+                oracle_indices=oracle_indices,
             )
             actions = action_output.actions
 

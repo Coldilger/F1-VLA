@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 import math
 import torch
 from torch import Tensor, nn
@@ -522,7 +522,13 @@ class F1FlowMatching(nn.Module):
         top_p: float = 0.95,
         num_samples: int = 1,
         rng: torch.Generator | None = None,
+        oracle_indices: Optional[List[torch.Tensor]] = None,
     ) -> Tensor:
+        # oracle_indices: if given, one LongTensor per VAR scale (same shapes
+        # img_to_idxBl returns, i.e. matching self.patch_nums), substituted for
+        # the sampled gen_indices at that scale below instead of letting the
+        # world-model head imagine the future itself. Ground-truth-future
+        # ablation; default None preserves exactly the original sampling path.
         bsize = state.shape[0]
         device = state.device
 
@@ -582,9 +588,12 @@ class F1FlowMatching(nn.Module):
             logits = self.wm_out_proj(self.wm_out_layer_norm(gen_out))
             all_gen_logits.append(logits.clone())
 
-            gen_indices = sample_with_top_k_top_p_(
-                logits, rng=rng, top_k=top_k, top_p=top_p, num_samples=num_samples
-            )[:, :, 0]
+            if oracle_indices is not None:
+                gen_indices = oracle_indices[si].to(device)
+            else:
+                gen_indices = sample_with_top_k_top_p_(
+                    logits, rng=rng, top_k=top_k, top_p=top_p, num_samples=num_samples
+                )[:, :, 0]
             all_gen_indices.append(gen_indices)
 
             h_BChw = self.vae.quantize.embedding(gen_indices)   # B, l, Cvae
