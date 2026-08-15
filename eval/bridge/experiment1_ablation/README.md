@@ -1,6 +1,7 @@
 # Experiment 1 — Ablation of the world-model signal (F1-VLA)
 
-**Status: planned, not yet run.**
+**Status: variant 1 done (offline probe + real closed-loop). Variant 2 done
+offline, closed-loop run in progress.**
 
 ## What this tests
 
@@ -21,26 +22,58 @@ future matter at all, in either direction."
 
 ## F1's mechanism: suppress the foresight signal reaching the action expert
 
-F1's VAR foresight loop feeds sampled future-frame tokens into the model as
-part of `inputs_embeds` before the action expert. Two ways to suppress this,
-each with a different confound — **how "suppress" is implemented matters**:
+**Plain-language summary of variant 1.** F1 makes decisions using three
+sub-networks ("experts") that share one memory (a KV cache) built from
+attention:
+
+1. **"What I see"** — the current camera image + the language instruction.
+2. **"What I imagine next"** — F1's own world model: it imagines what the
+   scene will look like a moment later, generated as a sequence of discrete
+   tokens (autoregressive VQ-VAE sampling, "VAR").
+3. **"What I do"** — the action expert. It reads the shared memory (built
+   from #1 and #2) and outputs the actual robot action via flow-matching
+   denoising.
+
+**The ablation does not touch the model's weights, retrain anything, or
+edit `modeling_f1.py`.** It exploits an already-existing, already-correct
+behavior of the shared-memory code
+(`f1_vla/src/models/paligemma_with_expert.py`, function `forward`): when
+building or reading that memory, any expert slot that is `None` is simply
+skipped — nothing is computed or stored for it. This exists for an
+unrelated, legitimate reason (reusing the cache across denoising steps
+without recomputing it). The ablation exploits it on purpose: `#2`'s slot is
+always passed as `None`, for every step, so "what I imagine next" never
+enters the shared memory at all — not even a placeholder. The action expert
+(`#3`) reads a memory that contains only `#1`, exactly as if the world-model
+expert did not exist for that call. The rest of the model — its trained
+weights, image processing, action-expert internals, every other eval script
+— is completely unmodified; only this one call's inputs differ. See
+[`sample_without_world_model.py`](sample_without_world_model.py) for the
+exact code (a new, standalone function, not a change to the shared model
+file) and its docstring for the underlying mechanics in full technical
+detail.
+
+**Why not the originally-planned `use_world_model=False`?** F1 has a config
+flag by that name, but it controls whether the world-model sub-network
+(with its own trained weights) gets *constructed* at all when the model is
+built — flipping it would require reconstructing the whole model with a
+different architecture and reloading weights into it, which is a much
+larger, riskier change than needed here. The `None`-slot trick achieves the
+same experimental condition (the action expert gets nothing from the
+world-model expert) while the model itself stays byte-for-byte the one
+already validated for every other eval/oracle run in this repo.
+
+Two ways to run this ablation, each with a different confound — **how
+"suppress" is implemented matters**:
 
 | | Sequence shape | Content of the foresight slot | Answers | Confound |
 |---|---|---|---|---|
-| **1. Remove the module** (`use_world_model=False`) | changed: tokens absent | nothing there | is the module needed at all? what does it cost? | shape the model never saw in training |
+| **1. Remove the module** (`None`-slot trick above) | changed: tokens absent | nothing there | is the module needed at all? what does it cost? | shape the model never saw in training |
 | **2. Shuffle the KV entries across episodes** | unchanged | real foresight, wrong episode | is *input-specific* information used? | none |
 
-Variant 1 is already directly available: `use_world_model` is a real,
-existing config flag (`f1_vla/src/models/configuration_f1.py`, threaded
-through `modeling_f1.py:664` — `inputs_embeds = [None, None, act_embs] if
-self.config.use_world_model else [None, act_embs]`). Running eval with it
-flipped to `False` on the existing bridge-finetuned checkpoint (trained with
-it `True`) gives variant 1 directly, with the noted confound: the model
-never saw this shorter sequence shape in training, so a drop in performance
-could be "the module matters" or just "unfamiliar input shape" — variant 2
-is the clean version that doesn't have this confound, but needs new code
-(shuffling the foresight KV cache entries across different episodes'
-batches at inference) that doesn't exist yet.
+Variant 2 reuses Experiment 2's oracle mechanism (`oracle_indices`,
+already validated, also unmodified) — see its own section below — so it
+needed no new model-level code either, only a different frame source.
 
 ## Results — variant 1, offline probe (120 samples: 24 episodes × 5 moments)
 
