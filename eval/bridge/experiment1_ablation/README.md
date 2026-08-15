@@ -1,7 +1,6 @@
 # Experiment 1 — Ablation of the world-model signal (F1-VLA)
 
-**Status: variant 1 done (offline probe + real closed-loop). Variant 2 done
-offline, closed-loop run in progress.**
+**Status: done — both variants, offline probe and real closed-loop.**
 
 ## What this tests
 
@@ -210,11 +209,53 @@ narrows *why* (plausibly not "genuine future prediction," more like
 in real closed loop (see below) to confirm this reading holds under the
 same memorization-robust test.
 
+## Results — variant 2, REAL closed-loop SimplerEnv-Bridge
+
+Same memorization-robustness motivation as variant 1's closed-loop run
+above. Implementation: [`f1_vla_policy_shuffled.py`](f1_vla_policy_shuffled.py)
+(`F1VLAShuffledInference`, subclasses `F1VLAInference` unchanged) +
+[`main_inference_shuffled.py`](main_inference_shuffled.py). Reuses
+Experiment 2's `oracle_indices` hook unchanged; the injected frame is drawn
+each control step from a fixed pool of 64 real Bridge frames loaded once at
+startup (`_load_frame_pool`), sampled with a seed-dependent RNG so each of
+the 3 eval seeds is reproducible. Same 4-task × 3-seed × 24-episode protocol
+as variant 1 and the baseline.
+
+| task | baseline | ablated (variant 1) | **shuffled (variant 2)** |
+|---|---|---|---|
+| Put Carrot on Plate | 34.7% | 20.8% | **36.1%** (37.5/29.2/41.7) |
+| Put Spoon on Towel | 50.0% | 41.7% | **50.0%** (50.0/41.7/58.3) |
+| Stack Green Cube | 40.3% | 13.9% | **43.1%** (41.7/33.3/54.2) |
+| Put Eggplant in Basket | 69.4% | 62.5% | **70.8%** (70.8/70.8/70.8) |
+| **average** | **48.6%** | **34.7%** | **50.0%** |
+
+**How to read it: this confirms the offline finding on the memorization-
+robust metric.** Shuffled matches or slightly exceeds baseline on *every
+single task*, never falling below it — the opposite pattern from ablated,
+which fell below baseline on every task. Combined with variant 1's result,
+the full picture across all three closed-loop conditions is consistent and
+clean:
+
+**no real image in the foresight slot (ablated) < self-imagined foresight
+(baseline) ≤ any real image, right or wrong episode (shuffled)**
+
+This closed-loop result rules out the memorization concern for the earlier
+offline reading: it isn't that the model merely "recognizes" a memorized
+(image, action) pair regardless of what's in the foresight slot — object
+placement is randomized per SimplerEnv episode, so most of what the model
+sees here was never in the training set. The module's causal weight for
+real task success is real, and variant 2 narrows down *why*: what seems to
+matter is that a real, in-distribution image occupies that slot at all —
+not that it correctly predicts this specific episode's future. A plausible
+mechanistic story: the world-model slot's real trained job may be closer to
+"give the action expert a second, real look at plausible scene statistics
+to condition on" than "tell the action expert what happens next" — closer
+to a representation/regularization role than a genuine forecasting role,
+even though removing it still measurably hurts.
+
 ## Not yet done
 
 - [x] Implement variant 1 eval run (offline probe).
 - [x] Implement variant 2 (KV-shuffle across episodes, offline probe).
-- [x] Run variant 1 on real SimplerEnv-Bridge closed-loop — done above.
-- [ ] Run variant 2 (KV-shuffle) on real SimplerEnv-Bridge closed-loop, to
-      check whether "oracle ≈ shuffled" also holds for real task success,
-      not just offline L1.
+- [x] Run variant 1 on real SimplerEnv-Bridge closed-loop.
+- [x] Run variant 2 on real SimplerEnv-Bridge closed-loop.
