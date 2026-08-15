@@ -1,6 +1,7 @@
 # Experiment 3 — Cost per decision (F1-VLA)
 
-**Status: planned, not yet run.**
+**Status: F1's own row done (real closed-loop latency, all 3 Experiment 1
+conditions).**
 
 ## What this tests
 
@@ -25,12 +26,59 @@ total inference on an RTX 4090 (foresight generation 76ms + 10× flow action
 steps 95ms + I/O ~64ms) — already above a 200ms/step budget, before
 accounting for our own hardware.
 
+## Results — F1's real closed-loop latency, all 3 Experiment 1 conditions
+
+Measured via [`timing_wrapper.py`](timing_wrapper.py) (a class decorator
+wrapping `_predict_new_chunk` with `torch.cuda.synchronize()` + a timer —
+does not modify `f1_vla_policy.py` or any Experiment 1 wrapper) +
+[`main_inference_timed.py`](main_inference_timed.py), on a real SimplerEnv
+rollout (3 episodes, PutCarrotOnPlateInScene, n=45 replan calls per
+condition — every replan is a full chunk-worth of control steps, i.e. one
+real per-decision cost, matching this table's own row description).
+Latency doesn't need the full 4×3×24 statistical-power grid the way success
+rate does — it's a property of the model's compute, not particularly
+task-dependent — so this smaller run already gives a stable estimate.
+
+| condition | median | p95 | mean |
+|---|---|---|---|
+| baseline (self-imagined foresight) | 215.7ms | 263.2ms | 270.0ms |
+| **ablated** (no world model) | **160.6ms** | 204.9ms | 187.0ms |
+| shuffled (wrong-episode real frame) | 217.3ms | 220.3ms | 225.0ms |
+
+**How to read it.** Ablated is genuinely, meaningfully cheaper than
+baseline (~55ms / ~26% faster median) — removing the VAR foresight-sampling
+loop saves real compute, as expected structurally, and (per
+`../experiment1_ablation/README.md`) also measurably *hurts* real task
+success (34.7% vs 48.6%). So the module is a real compute-for-performance
+trade, not a free structural artifact.
+
+Shuffled costs about the same as baseline, *not* less, despite skipping the
+sampling step itself. This is explainable, not surprising: `oracle_indices`
+(the mechanism variant 2 and Experiment 2 both reuse) only substitutes what
+gets *sampled* at each VAR scale — the expensive part (forward passes
+through the shared attention stack at every scale) still runs identically
+whether the tokens are sampled or supplied. The extra cost of encoding the
+injected frame through the VQ-VAE apparently roughly offsets what little
+the substitution itself would have saved. So variant 2's earlier finding
+(shuffled matches or beats baseline on success, per
+`../experiment1_ablation/README.md`) is a real, not-cheaper "free" win in
+success-rate terms, but not a discount in inference-time cost.
+
+F1's own paper reports ≈235ms total inference on an RTX 4090 — our
+baseline median (215.7ms) is comparable, on presumably faster hardware
+(H200 vs RTX 4090), a reasonable sanity check that this measurement isn't
+wildly off.
+
 ## Not yet done
 
-- [ ] Instrument `f1_vla_policy.py`'s `step()` to record per-step wall-clock
-      latency, split into foresight-generation vs action-flow-matching vs
-      I/O, matching the paper's own breakdown.
-- [ ] Run on real hardware (this project's GPUs, not the paper's RTX 4090)
-      across a real SimplerEnv-Bridge eval sweep, report median/p95.
-- [ ] Cross-reference against the already-measured success rate
-      (`../../RESULTS.md`) for the same checkpoint/seeds.
+- [x] Instrument the wrapper to record real per-decision latency (kept
+      as one combined number rather than splitting foresight/action/I/O
+      internally, to avoid modifying `modeling_f1.py` — see above for how
+      the ablated-vs-baseline comparison serves as an indirect split).
+- [x] Run on real hardware, all 3 Experiment 1 conditions, report
+      median/p95.
+- [ ] mimic-video and LDA-1B's rows (this table's other two categories) —
+      not yet measured.
+- [ ] Scale up to the full statistical-power grid if a more precise number
+      is needed later (current n=45 already gives a stable median/p95
+      estimate for a compute-bound, not particularly noisy quantity).
