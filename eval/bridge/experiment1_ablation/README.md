@@ -121,10 +121,67 @@ episode-specific predictive information — closer to mimic-video's finding
 control" story, though via a different mechanism (F1: any real image helps
 equally; mimic: even the real image doesn't help).
 
+## Results — variant 1, REAL closed-loop SimplerEnv-Bridge (the result that matters)
+
+**Why this run exists, and why the offline-probe numbers above aren't
+enough on their own:** the checkpoint was finetuned on the *entire* Bridge
+dataset with no held-out split, so a close match between a predicted action
+and the real logged action (what the offline probes measure) could reflect
+memorization of that exact (image, action) pair — for *either* condition
+equally — rather than genuine use of the foresight computation. L1-against-
+logged-action cannot tell those two apart. Real closed-loop rollout can:
+SimplerEnv randomizes object placement every episode
+(`obj_variation_mode: episode`), so beyond the first step the model faces
+states that were never logged anywhere during training — they're the
+consequence of its own actions in this specific simulated instantiation.
+Comparing success rate here is the test that actually isolates causal
+weight from memorization.
+
+Implementation: [`f1_vla_policy_ablated.py`](f1_vla_policy_ablated.py)
+(`F1VLAAblatedInference`, subclasses the real `F1VLAInference` unchanged,
+only overrides `_predict_new_chunk`) +
+[`main_inference_ablated.py`](main_inference_ablated.py) (mirrors
+`../main_inference.py` exactly, swaps the model class). Same protocol as
+the seeded baseline in `../../RESULTS.md`: 4 tasks × 3 seeds × 24 episodes,
+same checkpoint (`outputs/bridge_finetune`).
+
+| task | baseline (seeds 0/1/2, `RESULTS.md`) | baseline mean | **ablated** (seeds 0/1/2) | **ablated mean** | Δ |
+|---|---|---|---|---|---|
+| Put Carrot on Plate | 41.7 / 25.0 / 37.5 | 34.7% | 20.8 / 20.8 / 20.8 | **20.8%** | **−13.9pp** |
+| Put Spoon on Towel | 62.5 / 41.7 / 45.8 | 50.0% | 33.3 / 41.7 / 50.0 | **41.7%** | **−8.3pp** |
+| Stack Green Cube | 37.5 / 29.2 / 54.2 | 40.3% | 12.5 / 8.3 / 20.8 | **13.9%** | **−26.4pp** |
+| Put Eggplant in Basket | 62.5 / 58.3 / 87.5 | 69.4% | 41.7 / 66.7 / 79.2 | **62.5%** | **−6.9pp** |
+| **average** | | **48.6%** | | **34.7%** | **−13.9pp** |
+
+**How to read it: ablated is worse than baseline on every single task, not
+just on average.** Per `RESULTS.md`'s own documented sensitivity floor at
+this sample size (3 seeds × 24 episodes → ~10pp needed to separate two
+conditions), the overall drop (−13.9pp) and two of the four individual
+tasks (Carrot −13.9pp, Stack −26.4pp) clear that bar; Spoon and Eggplant are
+closer to the noise floor but both still land in the same direction, with
+no task reversing it. Combined with the consistent direction across all
+four tasks, this is a real, memorization-robust result: **removing F1's
+world-model computation measurably hurts real task success.** This is the
+strongest evidence yet (stronger than the offline probe, immune to its
+memorization concern) that the foresight computation is causally
+load-bearing for action selection, not a training-time-only effect.
+
+Read alongside variant 2's offline finding (oracle ≈ shuffled — the model
+doesn't care *which* episode's real image goes in the slot, only that a
+real one is there): the combined picture is that the module's causal weight
+comes from something like "conditioning on a real, in-distribution image
+signal helps regardless of its specific predictive content" — this closed-
+loop result confirms the module matters for real outcomes, while variant 2
+narrows *why* (plausibly not "genuine future prediction," more like
+"real-image conditioning/regularization"). Variant 2 has not yet been run
+in real closed loop (see below) to confirm this reading holds under the
+same memorization-robust test.
+
 ## Not yet done
 
 - [x] Implement variant 1 eval run (offline probe).
 - [x] Implement variant 2 (KV-shuffle across episodes, offline probe).
-- [ ] Run both variants on real SimplerEnv-Bridge closed-loop (not just the
-      offline probe) — compare success rate against the unmodified
-      baseline (see `../../RESULTS.md`).
+- [x] Run variant 1 on real SimplerEnv-Bridge closed-loop — done above.
+- [ ] Run variant 2 (KV-shuffle) on real SimplerEnv-Bridge closed-loop, to
+      check whether "oracle ≈ shuffled" also holds for real task success,
+      not just offline L1.
