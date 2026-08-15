@@ -7,10 +7,10 @@
 #SBATCH --time=02:00:00
 #SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/oracle-offline-%j.out
 
-# Offline oracle-injection probe (Experiment B). No SimplerEnv/ManiSkill2/vulkan
+# Offline oracle-injection probe (Experiment 2). No SimplerEnv/ManiSkill2/vulkan
 # needed -- reads bridge_orig_lerobot directly and injects ground-truth VQ
 # tokens into the VAR foresight loop (see modeling_f1.py's oracle_indices hook).
 export HF_HOME=/mnt/beegfsnew/scratch/3295540/hf_cache
 
 /home/3295540/.conda/envs/f1_vla_eval/bin/python \
-  /mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/oracle_offline_probe.py
+  /mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/experiment2_oracle/oracle_offline_probe.py

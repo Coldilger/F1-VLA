@@ -8,7 +8,7 @@
 #SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/oracle-smoke-%j.out
 
 export HF_HOME=/mnt/beegfsnew/scratch/3295540/hf_cache
-cd /mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge
+cd /mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/experiment2_oracle
 
 /home/3295540/.conda/envs/f1_vla_eval/bin/python -c "
 import pathlib
