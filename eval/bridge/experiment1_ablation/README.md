@@ -77,11 +77,54 @@ Variant 2 (shuffle real foresight tokens across episodes — same sequence
 shape as training, wrong episode's content) is the clean version without
 this confound and is not yet implemented.
 
+## Results — variant 2, offline probe (120 samples, same seed/protocol)
+
+Implemented by reusing Experiment 2's already-validated oracle mechanism
+unchanged (`oracle_indices` hook, `F1VLAOracleInference`) — no new model
+code at all. The only change from the oracle condition: the injected real
+frame comes from a *different, randomly paired episode* instead of this
+episode's own true next frame (paired by a fixed shift through the same
+seed=0 sample list, so every condition below is evaluated on the identical
+120 moments). See
+[`kv_shuffle_offline_probe.py`](kv_shuffle_offline_probe.py).
+
+**Combined table, all four conditions on the same 120 paired samples:**
+
+| condition | full action L1 |
+|---|---|
+| baseline (self-imagined foresight, default) | 0.0176 |
+| **oracle** (real future, own episode — Experiment 2) | **0.0157** |
+| **shuffled** (real future, wrong episode — variant 2) | **0.0157** |
+| ablated (no foresight at all — variant 1) | 0.0272 |
+| zero-action baseline | 0.0946 |
+
+**How to read it — this changes variant 1's interpretation.** Oracle and
+shuffled are *identical* to three significant figures, despite shuffled's
+content being from a completely unrelated episode. If the model were using
+episode-specific future information, shuffled should sit clearly between
+baseline and oracle, not match oracle exactly. It doesn't: **the model
+appears indifferent to whether the injected frame is correct, only to
+whether *some* real (non-imagined) image is present in that slot at all.**
+Combined with ablated being the clear outlier (much worse than all three
+conditions with *some* image present, real or wrong-episode), the most
+consistent reading is that variant 1's earlier degradation is better
+explained by its confound (unfamiliar, shorter sequence shape) than by loss
+of genuine information — variant 2 was designed to distinguish exactly this,
+and comes down against "input-specific information is used."
+
+This is a meaningful data point for the central research question: it leans
+toward the foresight slot acting as something closer to a **structural/
+training-time crutch** (needs *a* real image there, in-distribution,
+regardless of content) rather than a channel carrying causally-used,
+episode-specific predictive information — closer to mimic-video's finding
+(oracle ≈ no help there either) than to a clean "world modelling as
+control" story, though via a different mechanism (F1: any real image helps
+equally; mimic: even the real image doesn't help).
+
 ## Not yet done
 
 - [x] Implement variant 1 eval run (offline probe).
-- [ ] Implement variant 2 (KV-shuffle across episodes) — needs new code,
-      rules out the shape confound above.
-- [ ] Run variant 1 on real SimplerEnv-Bridge closed-loop (not just the
+- [x] Implement variant 2 (KV-shuffle across episodes, offline probe).
+- [ ] Run both variants on real SimplerEnv-Bridge closed-loop (not just the
       offline probe) — compare success rate against the unmodified
       baseline (see `../../RESULTS.md`).
