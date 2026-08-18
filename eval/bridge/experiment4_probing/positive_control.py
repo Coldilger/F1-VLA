@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Experiment 4 positive control: do the pooled features carry *anything*?
+Experiment 4 positive control (F1-VLA): do the pooled features carry *anything*?
 
 The future-pose probe came back at the level of trivial baselines for both
 checkpoints (ridge L1 0.05292 finetuned / 0.05379 pretrained, vs 0.05326 for
@@ -25,6 +25,16 @@ anything.
 
 Uses the same standardization and the same dual-form ridge as train_probe.py,
 so nothing but the target differs.
+
+CORRECTED 2026-08-18: the original version of this script selected alpha by
+directly maximizing accuracy ON THE HELD-OUT VAL SET -- a leak (val used for
+both hyperparameter selection and evaluation), which inflated the originally
+reported "100%, 40x chance" result for both mimic-video and F1-VLA. Alpha is
+now chosen by k-fold CV within the train split only, matching train_probe.py/
+compare_targets.py's already-correct methodology, never touching val labels
+before the final scoring pass. The qualitative finding survives (episode
+identity is still well above chance), but the reported magnitude was wrong
+and needed correcting, not just noting.
 """
 
 import argparse
@@ -73,15 +83,29 @@ def main():
     chance = 1.0 / len(uniq)
     print(f"chance accuracy: {chance:.4f}\n")
 
-    best = (None, -1.0)
-    for alpha in np.logspace(-1, 6, 22):
-        pred = ridge_fit_predict(Xn[tr], onehot[tr], Xn[va], alpha)
-        acc = float((uniq[pred.argmax(1)] == ep[va]).mean())
-        if acc > best[1]:
-            best = (float(alpha), acc)
+    # alpha chosen by k-fold CV WITHIN the train split only -- val is never
+    # touched until the single final scoring pass below.
+    rng_cv = np.random.default_rng(args.seed)
+    n_folds = 5
+    cv_order = rng_cv.permutation(len(tr))
+    folds = np.array_split(cv_order, n_folds)
 
-    alpha, acc = best
-    print(f"episode-identity accuracy: {acc:.4f}  (alpha={alpha:g})")
+    best_alpha, best_cv_acc = None, -1.0
+    for alpha in np.logspace(-1, 6, 22):
+        accs = []
+        for i in range(n_folds):
+            fold_va = folds[i]
+            fold_tr = np.concatenate([folds[j] for j in range(n_folds) if j != i])
+            pred = ridge_fit_predict(Xn[tr][fold_tr], onehot[tr][fold_tr], Xn[tr][fold_va], alpha)
+            accs.append(float((uniq[pred.argmax(1)] == ep[tr][fold_va]).mean()))
+        cv_acc = float(np.mean(accs))
+        if cv_acc > best_cv_acc:
+            best_alpha, best_cv_acc = float(alpha), cv_acc
+
+    pred = ridge_fit_predict(Xn[tr], onehot[tr], Xn[va], best_alpha)
+    acc = float((uniq[pred.argmax(1)] == ep[va]).mean())
+    alpha = best_alpha
+    print(f"episode-identity accuracy: {acc:.4f}  (alpha={alpha:g}, CV-selected, train-only)")
     print(f"chance:                    {chance:.4f}")
     print(f"ratio over chance:         {acc / chance:.1f}x")
     print()
