@@ -138,9 +138,42 @@ most-exploitable direction of variance for the probe to latch onto.
 - `compare_targets.py` / `compare_targets.slurm` — control 2, current vs
   future (decisive)
 
+## Update (2026-08-18): 25x more episodes helps in degree, not in kind
+
+Following `experiment5_erasure/`'s refutation of the scene-masking
+hypothesis, re-extracted with 1000 episodes x 1 sample (vs. the original 40
+x 10) — same total-ish extraction cost (F1's per-sample cost is ~0.4s, so
+1000 samples took minutes, not hours), 25x more distinct episodes.
+
+| | 40 episodes (30 train / 10 val) | 1000 episodes (750 train / 250 val) |
+|---|---|---|
+| current-pose gain | −254.2% / −253.9% | **−144.0% / −144.6%** |
+| future-pose gain | −19.3% / −8.0% | **+0.2% / +0.1%** |
+
+Real improvement in *degree* — the probe is now ~2.4x worse than a constant
+predictor rather than ~3.5x — but not in *kind*: current pose, a quantity
+unambiguously present in the input frame, is still nowhere near recoverable.
+25x more episode diversity meaningfully softened the failure without fixing
+it. This argues against "just needs a bit more data" and doesn't rule in or
+out "needs an order of magnitude more" vs. "the extraction itself caps what's
+recoverable regardless of data" -- both remain open.
+
+`positive_control.py`'s episode-identity check is **not meaningful at
+samples-per-episode=1**: with exactly one sample per episode, its
+sample-level split degenerates into an episode-level one (every episode
+lands entirely on one side), so predicted labels (from the 750 train
+episodes) can never match held-out val episode IDs by construction — the
+resulting 0.0% is a split-design artifact, not a finding about the
+representation. The decisive current-pose control is unaffected (it already
+uses an episode-level split by design) and remains the number to trust.
+
 ## Not yet done
 
-- [ ] Re-extract for both mimic-video and F1 with substantially more
-      distinct episodes/scenes (not just more samples), informed by the
-      episode-clustering check already run on mimic-video's data.
+- [ ] Re-run mimic-video's equivalent more-episodes extraction (in progress:
+      250 episodes x 2 samples) for a same-question cross-model comparison.
+- [ ] If pursued further: an even larger episode count for F1 (cheap here,
+      ~0.4s/sample) to see whether the −144% keeps shrinking or plateaus.
+- [ ] Fix or retire positive_control.py's episode-identity check for the
+      samples-per-episode=1 case, or document the samples-per-episode>=2
+      requirement explicitly in its argparse help.
 - [ ] Extend to LDA-1B once its extraction point is resolved.
