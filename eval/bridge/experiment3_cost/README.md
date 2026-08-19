@@ -15,7 +15,7 @@ but free side-effect.
 | Category | Model | World-model compute @ inference | Latency / control step (median · p95) | Success rate, SimplerEnv-Bridge |
 |---|---|---|---|---|
 | 1 | **F1-VLA** | VAR foresight loop, re-run **every control step** | 215.7 ms · 263.2 ms | 48.6% (3-seed × 4-task average) |
-| 2 | mimic-video | One video-backbone forward pass per action chunk (amortised over the chunk) | 10226.9 ms · 10416.5 ms | 11.5% (baseline at matched `stop=23`) |
+| 2 | mimic-video | One video-backbone forward pass per action chunk (amortised over the chunk) | 10226.9 ms · 10416.5 ms | 50.0% (July best-of-sweep over `--vam-stop-video-denoising-step`; the fixed `stop=23` used for Experiment 1's own matched comparison measured 11.5% — see mimic-video's `experiment1_ablation/README.md`) |
 | 3 | LDA-1B | None beyond the shared MM-DiT — the visual-forecasting head is a training-time co-objective, unused at inference | 254.7 ms · 256.8 ms (RoboCasa checkpoint, Bridge has nothing working to time yet) | 0% (still under investigation) |
 
 F1 is in the worst position here structurally: unlike mimic-video (one
