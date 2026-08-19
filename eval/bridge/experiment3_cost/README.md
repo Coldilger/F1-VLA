@@ -12,11 +12,11 @@ to causally matter (per E1/E2) is a much stronger result if it's also
 *expensive* — that's compute being spent for nothing, not just an unused
 but free side-effect.
 
-| Category | Model | World-model compute @ inference | Latency / control step (median · p95) | Success rate, SimplerEnv-Bridge (95% CI) |
+| Category | Model | World-model compute @ inference | Latency / control step (median · p95) | Success rate, SimplerEnv-Bridge |
 |---|---|---|---|---|
-| 1 | **F1-VLA** | VAR foresight loop, re-run **every control step** | TBD | TBD |
-| 2 | mimic-video | One video-backbone forward pass per action chunk (amortised over the chunk) | TBD | TBD |
-| 3 | LDA-1B | None beyond the shared MM-DiT — the visual-forecasting head is a training-time co-objective, unused at inference | TBD | TBD |
+| 1 | **F1-VLA** | VAR foresight loop, re-run **every control step** | 215.7 ms · 263.2 ms | 48.6% (3-seed × 4-task average) |
+| 2 | mimic-video | One video-backbone forward pass per action chunk (amortised over the chunk) | 10226.9 ms · 10416.5 ms | 11.5% (baseline at matched `stop=23`) |
+| 3 | LDA-1B | None beyond the shared MM-DiT — the visual-forecasting head is a training-time co-objective, unused at inference | 254.7 ms · 256.8 ms (RoboCasa checkpoint, Bridge has nothing working to time yet) | 0% (still under investigation) |
 
 F1 is in the worst position here structurally: unlike mimic-video (one
 forward pass amortized over a whole action chunk) or LDA-1B (no extra
@@ -77,8 +77,8 @@ wildly off.
       the ablated-vs-baseline comparison serves as an indirect split).
 - [x] Run on real hardware, all 3 Experiment 1 conditions, report
       median/p95.
-- [ ] mimic-video and LDA-1B's rows (this table's other two categories) —
-      not yet measured.
+- [x] mimic-video and LDA-1B's rows (this table's other two categories) —
+      measured 2026-08-19, see each repo's own `experiment3_cost/README.md`.
 - [ ] Scale up to the full statistical-power grid if a more precise number
       is needed later (current n=45 already gives a stable median/p95
       estimate for a compute-bound, not particularly noisy quantity).

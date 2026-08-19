@@ -80,6 +80,22 @@ mechanism is being used, not just present as a ritual. This is a strong
 candidate for the "world modelling as control" cell of the taxonomy
 (Slide 16) — at least for F1.
 
+## Not yet done
+
+- [ ] **Closed-loop success-rate evaluation.** The precedent this experiment
+  extends (mimic-video's own paper, Section III/Fig. 2) reports **closed-loop
+  success rate**, not offline single-step L1 — the number above is a cheaper
+  proxy for the causal question, not a replication of the paper's own
+  reported metric. Getting a genuine closed-loop oracle number is harder than
+  it looks: once the model's own action diverges from the logged trajectory,
+  there is no pre-recorded "real future" left to inject at the next step. The
+  source paper handled this via live human teleoperation (mimic-video's own
+  `main_inference_hil.py` / `eval_hil.sh`, "human-in-the-loop evaluation
+  (oracle study)") — expensive per episode, and not yet run for any of the
+  three models. Until this exists, read the L1 numbers above as a cheap
+  offline signal that the mechanism *can* use real future information, not
+  as evidence about closed-loop success rate specifically.
+
 ## Caveats
 
 1. **Memorization.** The model was trained on the whole Bridge dataset;

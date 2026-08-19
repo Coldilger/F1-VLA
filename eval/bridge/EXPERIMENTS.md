@@ -21,15 +21,20 @@ LDA-1B forks, each with a model-specific implementation.
   Replace the predicted future with the ground-truth future, encoded
   through each model's own pipeline. Tests whether a *perfect* forecast
   would even be used if the model had one. Extends the case study in
-  mimic-video's own paper (arXiv:2512.15692, Section III / Fig. 2). Has
-  real results for F1 and mimic-video (see `experiment2_oracle/ORACLE_EXPERIMENT.md`
-  in each repo); LDA-1B's are pending a retrain (see LDA-1B's copy).
+  mimic-video's own paper (arXiv:2512.15692, Section III / Fig. 2). Offline
+  single-step L1 results exist for F1 and mimic-video (see
+  `experiment2_oracle/ORACLE_EXPERIMENT.md` in each repo); LDA-1B's are
+  pending a retrain (see LDA-1B's copy). **Closed-loop success-rate
+  evaluation — the metric the precedent paper itself reports — is still
+  outstanding for all three models**; see the "Not yet done" section of
+  `ORACLE_EXPERIMENT.md`.
 - [`experiment3_cost/`](experiment3_cost/) — **Cost per decision.**
   Characterizes how much inference-time compute each model actually spends
   on its world-model computation, and at what latency/success-rate
   trade-off. Context for interpreting Experiments 1 and 2: an expensive
   computation that turns out not to matter (per E1/E2) is a stronger result
-  than a cheap one.
+  than a cheap one. **Done** — all three models' rows measured
+  2026-08-19, see `experiment3_cost/README.md`.
 - [`experiment4_probing/`](experiment4_probing/) — **Representation
   probing.** Freezes each model's backbone and trains a small probe head to
   predict future end-effector pose from a single frozen hidden state. Tests
