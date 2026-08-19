@@ -167,6 +167,21 @@ resulting 0.0% is a split-design artifact, not a finding about the
 representation. The decisive current-pose control is unaffected (it already
 uses an episode-level split by design) and remains the number to trust.
 
+## Is current pose nonlinearly recoverable? (2026-08-19, cross-check from LDA-1B)
+
+While probing LDA-1B, an MLP recovered its current pose (+60.2% over
+constant) where ridge had failed badly (−229%) — raising the question of
+whether F1's own current-pose failure is also a linear-probe artifact
+rather than a real absence of information. Tested directly
+(`LDA-1B/eval/bridge/experiment4_probing/mlp_current_pose.py`, same
+`ProbeHead` architecture this repo's own `train_probe.py` already uses for
+the future target, run against this repo's own `features_finetuned_more.npz`
+/ `current_pose_more.npz`): **MLP current-pose val L1 0.138 vs. constant
+0.138 — a −0.1% gain, i.e. no better than guessing the mean.** Unlike LDA,
+nonlinearity is not the explanation for F1's current-pose failure — the
+representation (`gen_out` tokens) genuinely does not encode pose here,
+under either probe family.
+
 ## Not yet done
 
 - [ ] Re-run mimic-video's equivalent more-episodes extraction (in progress:
@@ -176,4 +191,7 @@ uses an episode-level split by design) and remains the number to trust.
 - [ ] Fix or retire positive_control.py's episode-identity check for the
       samples-per-episode=1 case, or document the samples-per-episode>=2
       requirement explicitly in its argparse help.
-- [ ] Extend to LDA-1B once its extraction point is resolved.
+- [x] Extend to LDA-1B — done 2026-08-19, see
+      `LDA-1B/eval/bridge/experiment4_probing/README.md`. Notably different
+      result: LDA's shared `vl_embs` backbone *does* encode both current and
+      future pose, nonlinearly.

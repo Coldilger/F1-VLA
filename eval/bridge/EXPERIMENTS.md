@@ -42,8 +42,10 @@ LDA-1B forks, each with a model-specific implementation.
   directly: does the representation already encode useful future
   information, independent of what the model's own inference-time
   computation does with it? Run for F1 and mimic-video; both fail the same
-  way (current pose worse than a constant predictor) — see
-  `experiment4_probing/README.md`.
+  way (current pose worse than a constant predictor, confirmed under both
+  linear and nonlinear probes — see `experiment4_probing/README.md`). LDA-1B
+  fails differently: nonlinear probe recovers what its linear one couldn't,
+  see LDA-1B's own copy.
 - [`experiment5_erasure/`](experiment5_erasure/) — **Concept erasure
   (LEACE).** Follow-up to Experiment 4's decisive control: surgically erase
   the scene/episode-identity direction from the extracted features and check
