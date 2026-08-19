@@ -8,7 +8,7 @@ representational effect?
 
 Each experiment below attacks this question from a different angle, across
 all three models under comparison (F1-VLA, mimic-video, LDA-1B). This repo
-is F1-VLA's fork; the same four experiments also live in the mimic-video and
+is F1-VLA's fork; the same five experiments also live in the mimic-video and
 LDA-1B forks, each with a model-specific implementation.
 
 ## Experiments
@@ -41,4 +41,16 @@ LDA-1B forks, each with a model-specific implementation.
   the "training-time representational effect" side of the research question
   directly: does the representation already encode useful future
   information, independent of what the model's own inference-time
-  computation does with it?
+  computation does with it? Run for F1 and mimic-video; both fail the same
+  way (current pose worse than a constant predictor) — see
+  `experiment4_probing/README.md`.
+- [`experiment5_erasure/`](experiment5_erasure/) — **Concept erasure
+  (LEACE).** Follow-up to Experiment 4's decisive control: surgically erase
+  the scene/episode-identity direction from the extracted features and check
+  whether pose becomes recoverable in what's left. Tests whether Experiment
+  4's failure was pose information being masked by a stronger, irrelevant
+  signal, or something else. **Level A run and decisive for F1 and
+  mimic-video** — masking is refuted; pose recoverability doesn't improve
+  after erasure. Level B (causal downstream re-injection) not started,
+  scoped pending a extraction change that makes pose linearly recoverable at
+  all. See `experiment5_erasure/README.md`.
