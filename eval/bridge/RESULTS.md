@@ -422,13 +422,16 @@ least at this training budget (100k steps, batch 16) — chunk_size alone is not
 the fix. Only eggplant is roughly at parity with chunk4; the other three tasks
 are all down, carrot and stack sharply.
 
-**Caveat worth flagging, not settled:** this run used the same "no
+**Caveat, deliberately not chased further:** this run used the same "no
 `--f1-execute-steps` override" convention as chunk4's baseline, i.e. execute
 the full trained chunk (8 of 8). The earlier 20k-checkpoint investigation
 found `--f1-execute-steps 5` beat both 4 and 8 for chunk8 on carrot (18.1% vs
 15.6%/14.6%) — so this result may understate chunk8's real ceiling if 8-of-8
-execution isn't actually chunk8's best operating point. Not retested here;
-worth doing before treating 36.8% as chunk8's final word.
+execution isn't actually chunk8's best operating point. Decided not to retest:
+even the best 20k-checkpoint number for chunk8 (18.1%, ex5) still sat below
+chunk4's matched-step number (26.0%), so the qualitative finding — chunk8
+does not beat chunk4 at this training budget, whatever the execution
+horizon — is not expected to flip. Not worth the additional compute.
 
 **Where this leaves the gap-to-paper question.** With chunk_size tested and
 not panning out (at this budget), undertraining (0.845 epochs vs the paper's
@@ -439,6 +442,24 @@ negative result. A clean test (full paper recipe: batch 128, ~148k steps) is
 estimated at 300+ GPU-hours given this run's own measured ~29h/100k-steps-at-
 batch-16 rate — **explicitly out of budget for this thesis**, so this remains
 a documented, well-evidenced hypothesis rather than a confirmed one.
+
+**A candidate explanation for *why* chunk8 lost, not just that it did.** A
+larger action chunk is a strictly harder prediction target — the model must
+get 8 sequential steps right per plan instead of 4, roughly doubling the
+output space it needs to fit — so it plausibly needs *more* gradient updates
+to converge, not the same amount. At the paper's full budget (~148k steps,
+batch 128) chunk8 is presumably worth it; at our truncated budget (100k
+steps, batch 16 — already shown to still be on the steep, non-saturated part
+of the curve for chunk4) chunk8 may simply not have had enough updates to
+reach the regime where its larger, more expressive chunk pays off, while
+chunk4's smaller/simpler target converges faster with less data. Under this
+reading, chunk_size and training budget are not independent knobs: the
+"right" chunk_size at a paper-scale budget may not be the "right" chunk_size
+at ours, and chunk8's regression is itself indirect evidence *for* the
+undertraining hypothesis above, not just a separate ruled-out lever. Not
+tested further (would need chunk8 at matched *larger* budgets to confirm) —
+offered as the mechanistic reading that ties both findings in this file
+together, not as a new measured result.
 
 **Operational note:** 9 of the first 12 job attempts crashed on `write_video`'s
 libx264 call (`Error while opening encoder`), across all three physical nodes
