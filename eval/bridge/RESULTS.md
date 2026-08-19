@@ -397,3 +397,53 @@ Also refuted this session (both were mine, both measured, both dead):
 - *"train_loss tracks policy quality."* chunk4 and chunk8 have near-identical loss
   curves (0.535 vs 0.515 at 20k, same slope) and differ 2x in success rate. Loss
   is useless for model selection here; only rollouts count.
+
+## chunk_size=8 at 100k: negative result (2026-08-19)
+
+The chunk8 model finished its full 100k-step training run on 2026-08-15 but was
+never evaluated at that checkpoint — the last entry above only compared it at
+20k. Ran the full 4-task x 3-seed x 24-episode protocol against the final
+checkpoint (`outputs/bridge_finetune_chunk8`, matched exactly to chunk4's own
+final eval: same 12 `seeded/*.slurm` scripts, only the checkpoint path and
+save-tags changed, no `--f1-execute-steps` override on either side).
+
+| task | seeds (0/1/2) | mean | chunk4@100k | paper |
+|---|---|---|---|---|
+| Put Carrot on Plate | 41.7 / 37.5 / 33.3 | **37.5%** | 34.7% | 70.8% |
+| Put Spoon on Towel | 58.3 / 37.5 / 25.0 | **40.3%** | 50.0% | 50.0% |
+| Stack Green Cube | 25.0 / 20.8 / 16.7 | **20.8%** | 40.3% | 50.0% |
+| Put Eggplant in Basket | 54.2 / 54.2 / 37.5 | **48.6%** | 69.4% | 66.7% |
+| **average** | | **36.8%** | **48.6%** | **59.4%** |
+
+**chunk8 is worse than chunk4, not better** (-11.8pp), despite chunk8 being the
+value Table 8 actually documents for Simpler. This directly refutes the
+"our chunk4 was wrong, the paper's chunk8 will close the gap" hypothesis, at
+least at this training budget (100k steps, batch 16) — chunk_size alone is not
+the fix. Only eggplant is roughly at parity with chunk4; the other three tasks
+are all down, carrot and stack sharply.
+
+**Caveat worth flagging, not settled:** this run used the same "no
+`--f1-execute-steps` override" convention as chunk4's baseline, i.e. execute
+the full trained chunk (8 of 8). The earlier 20k-checkpoint investigation
+found `--f1-execute-steps 5` beat both 4 and 8 for chunk8 on carrot (18.1% vs
+15.6%/14.6%) — so this result may understate chunk8's real ceiling if 8-of-8
+execution isn't actually chunk8's best operating point. Not retested here;
+worth doing before treating 36.8% as chunk8's final word.
+
+**Where this leaves the gap-to-paper question.** With chunk_size tested and
+not panning out (at this budget), undertraining (0.845 epochs vs the paper's
+~10, entangled with the batch-16-vs-128 difference — see above) is the
+better-supported remaining explanation: it's the one hypothesis with direct
+positive evidence (the non-saturating learning curve) rather than a ruled-out
+negative result. A clean test (full paper recipe: batch 128, ~148k steps) is
+estimated at 300+ GPU-hours given this run's own measured ~29h/100k-steps-at-
+batch-16 rate — **explicitly out of budget for this thesis**, so this remains
+a documented, well-evidenced hypothesis rather than a confirmed one.
+
+**Operational note:** 9 of the first 12 job attempts crashed on `write_video`'s
+libx264 call (`Error while opening encoder`), across all three physical nodes
+in the partition, at varying episode indices — not concurrency-specific (still
+failed at reduced concurrency after the initial burst). Worked around with
+`main_inference_skip_video.py` (monkey-patches `write_video` to a no-op; the
+videos aren't used anywhere in this analysis, only the printed success rate).
+All 12 final numbers above are from clean runs (video-writing or not).
