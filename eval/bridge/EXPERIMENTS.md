@@ -21,19 +21,19 @@ LDA-1B forks, each with a model-specific implementation.
   Replace the predicted future with the ground-truth future, encoded
   through each model's own pipeline. Tests whether a *perfect* forecast
   would even be used if the model had one. Extends the case study in
-  mimic-video's own paper (arXiv:2512.15692, Section III / Fig. 2). Offline
-  single-step L1 results exist for F1 and mimic-video (see
-  `experiment2_oracle/ORACLE_EXPERIMENT.md` in each repo); LDA-1B's are
-  pending a retrain (see LDA-1B's copy). A **live, randomized-rollout probe**
-  now exists too (memorization-resistant, unlike the offline probe above) —
-  for F1, n=24 episodes, oracle ≈ the real policy's own action on successful
-  episodes, reinforcing Experiment 1's "content doesn't matter much"
-  reading; for mimic, n=24 episodes but flagged preliminary pending an
-  unresolved success-rate anomaly (20.8% vs. an established 41.7% baseline)
-  — see each repo's own `ORACLE_EXPERIMENT.md`. **Closed-loop success-rate
-  evaluation with the oracle actually driving the robot — the metric the
-  precedent paper itself reports — is still outstanding for all three
-  models**; see the "Not yet done" section of `ORACLE_EXPERIMENT.md`.
+  mimic-video's own paper (arXiv:2512.15692, Section III / Fig. 2). A
+  **live, randomized-rollout probe** exists for F1 and mimic-video (n=24
+  episodes each — memorization-resistant, sourced from live SimplerEnv-
+  Bridge rollouts, not a replay of the training set) — for F1, oracle ≈ the
+  real policy's own action on successful episodes, reinforcing Experiment
+  1's "content doesn't matter much" reading; see each repo's own
+  `ORACLE_EXPERIMENT.md`. (An earlier offline replay-based probe existed for
+  F1/mimic; retired to `OFFLINE_PROBE_BACKLOG.md` in each repo — no
+  held-out split, not a citable result.) LDA-1B's live probe (via RoboCasa)
+  is done too — see LDA-1B's own copy. **Closed-loop success-rate evaluation
+  with the oracle actually driving the robot — the metric the precedent
+  paper itself reports — is still outstanding for all three models**; see
+  the "Not yet done" section of `ORACLE_EXPERIMENT.md`.
 - [`experiment3_cost/`](experiment3_cost/) — **Cost per decision.**
   Characterizes how much inference-time compute each model actually spends
   on its world-model computation, and at what latency/success-rate

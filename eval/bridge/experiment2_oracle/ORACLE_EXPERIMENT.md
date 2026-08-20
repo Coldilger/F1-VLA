@@ -42,53 +42,38 @@ closed-loop rollout is unaffected.
 
 ## How the metric is computed
 
-Take a real, logged moment from an actual Bridge episode: the "now"
-frame plus what the robot **actually** did a second later (logged in the
-dataset — a fact, not a guess). Show the model "now", ask "what action
-would you take", compare its answer to reality.
+A robot action is a vector of several numbers (x/y/z translation, rotation,
+gripper). **L1** is `|predicted − real|`, averaged across the vector's
+numbers. Example: real action `[0.02, -0.01, 0.00]`, predicted
+`[0.03, -0.01, 0.01]` → errors `[0.01, 0.00, 0.01]` → L1 = 0.0067. Lower L1
+means a closer guess.
 
-We do this twice for the same moment:
-- **policy / default** — the model answers while imagining the future
-  itself;
-- **oracle** — the model is additionally shown the real next frame before
-  answering.
+The comparison is between the oracle-conditioned prediction (the real next
+frame substituted in via `oracle_indices` on `sample_actions_with_world_model`)
+and a reference action, on the same real decision points. If oracle is
+clearly closer to the reference than the model's normal, self-imagined
+prediction is, the mechanism genuinely uses precise future information when
+it has it. If there's no difference, even the real future doesn't help —
+meaning the inference-time computation carries no causal weight for action
+selection.
 
-A robot action is a vector of several numbers (x/y/z translation,
-rotation, gripper). **L1** is `|predicted − real|`, averaged across the
-vector's numbers. Example: real action `[0.02, -0.01, 0.00]`, predicted
-`[0.03, -0.01, 0.01]` → errors `[0.01, 0.00, 0.01]` → L1 = 0.0067. Lower
-L1 means a closer guess.
+An earlier version of this probe replayed `bridge_orig_lerobot` — the exact
+dataset F1 was finetuned on, with no held-out split — comparing the oracle's
+prediction against the logged expert action. That number is not reported
+here: with no held-out split, any gap is confounded with memorization
+(the model may reproduce "the right" action because it memorized this
+specific trajectory, not because it genuinely used the injected signal),
+so it isn't decisive evidence either way. Kept for the record, not cited,
+in `OFFLINE_PROBE_BACKLOG.md`. The live probe below replaces it.
 
-We then compare L1 under oracle vs L1 under policy on the same moments.
-If oracle is clearly more accurate, the mechanism genuinely uses precise
-future information when it has it. If there's no difference, even the
-real future doesn't help — meaning the inference-time computation carries
-no causal weight for action selection.
+## Live oracle probe (closed-loop, randomized)
 
-## Current results (120 samples: 24 episodes × 5 moments)
-
-| | oracle | baseline (zero action) |
-|---|---|---|
-| full action, L1 | **0.0157** (sd 0.0195) | 0.0946 |
-| position (x,y,z), L1 | 0.0060 | — |
-| gripper, L1 | 0.0202 | — |
-
-**How to read it:** oracle is almost 6x more accurate than the trivial
-baseline ("don't move"). Given a real future frame, F1 genuinely
-recovers the correct action with good accuracy — the foresight
-mechanism is being used, not just present as a ritual. This is a strong
-candidate for the "world modelling as control" cell of the taxonomy
-(Slide 16) — at least for F1.
-
-## Live oracle probe (closed-loop, randomized) — memorization check
-
-The offline probe above replays `bridge_orig_lerobot` — the exact dataset F1
-was finetuned on, with no held-out split (caveat 1 below). This probe reuses
-the identical oracle mechanism (`F1VLAOracleInference.predict_action_given_true_next_frame`,
-unmodified) but sources it from a live, randomized SimplerEnv-Bridge rollout
-instead: object placement is randomized per episode by SimplerEnv itself
-(the same mechanism Experiment 1's own closed-loop eval already uses), so
-verbatim recall of a specific trajectory is impossible here (distributional
+This probe reuses the identical oracle mechanism
+(`F1VLAOracleInference.predict_action_given_true_next_frame`, unmodified)
+but sources it from a live, randomized SimplerEnv-Bridge rollout: object
+placement is randomized per episode by SimplerEnv itself (the same
+mechanism Experiment 1's own closed-loop eval already uses), so verbatim
+recall of a specific trajectory is impossible here (distributional
 overfitting to the task family is a separate, softer question this doesn't
 rule out).
 
@@ -143,9 +128,8 @@ That number is still the "Not yet done" item below.
   driving the robot, not just a side-channel query compared against the real
   policy's own action. The precedent this experiment extends (mimic-video's
   own paper, Section III/Fig. 2) reports **closed-loop success rate**, not
-  offline/live single-step L1 — everything above (both the original offline
-  probe and the live probe) is a cheaper proxy for the causal question, not
-  a replication of the paper's own reported metric. Getting a genuine
+  single-step L1 — the live probe above is a cheaper proxy for the causal
+  question, not a replication of the paper's own reported metric. Getting a genuine
   closed-loop oracle number is harder than it looks: once the model's own
   action diverges from the logged trajectory, there is no pre-recorded "real
   future" left to inject at the next step. The source paper handled this via
@@ -160,11 +144,13 @@ That number is still the "Not yet done" item below.
 
 ## Caveats
 
-1. **Memorization.** The model was trained on the whole Bridge dataset;
-   there is no held-out split. The number may partly reflect "the model
-   memorized this trajectory" rather than "the architecture can use
-   foresight". Without a held-out split these are indistinguishable —
-   see the general caveat that applies to all three models.
+1. **Distributional overfitting.** Object placement is randomized per
+   episode, so verbatim memorization of this exact trajectory is
+   impossible — but overfitting to the task *family* (Bridge's specific
+   set of tasks/objects/scenes) is a separate, softer question this probe
+   doesn't rule out. Weaker and harder to rule out than exact-trajectory
+   memorization, but not the same failure mode as the offline probe this
+   one replaced (see `OFFLINE_PROBE_BACKLOG.md`).
 2. **One run, no seed repeats.** Given the seed-to-seed variance already
    documented on this benchmark (see `RESULTS.md`, up to 25-30pp spread
    between seeds on closed-loop success rate), a single number without

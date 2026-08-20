@@ -1,6 +1,8 @@
 # Experiment 1 — Ablation of the world-model signal (F1-VLA)
 
-**Status: done — both variants, offline probe and real closed-loop.**
+**Status: done — both variants, real closed-loop.** (Offline probes also ran
+early on; retired to `OFFLINE_PROBE_BACKLOG.md` — no held-out split, not a
+citable result, see below.)
 
 ## What this tests
 
@@ -74,84 +76,16 @@ Variant 2 reuses Experiment 2's oracle mechanism (`oracle_indices`,
 already validated, also unmodified) — see its own section below — so it
 needed no new model-level code either, only a different frame source.
 
-## Results — variant 1, offline probe (120 samples: 24 episodes × 5 moments)
+## Offline probes (both variants) — retired to backlog
 
-Implemented WITHOUT modifying `modeling_f1.py`: see
-[`sample_without_world_model.py`](sample_without_world_model.py)'s docstring
-for the mechanism (relies on `paligemma_with_expert.forward` already
-skipping any `None` entry in `inputs_embeds`, both when filling and reading
-the KV cache, so the gen/world-model expert simply never gets queried for
-this call — no config change, no reconstructed model, no risk to the
-existing eval/oracle/training paths). Offline probe only so far (real
-logged Bridge moments, no simulator), same protocol as
-`../experiment2_oracle/oracle_offline_probe.py`.
-
-| | full action L1 |
-|---|---|
-| **ablated** (no world model) | **0.0272** (sd 0.0319) |
-| **baseline** (default, world model present) | **0.0176** (sd 0.0263) |
-| zero-action baseline | 0.0946 |
-
-**How to read it:** both conditions are far better than doing nothing
-(3.5-5x lower L1 than the zero-action baseline), but removing the
-world-model tokens makes action prediction ~55% worse relative to the
-unmodified default (0.0272 vs 0.0176). Read together with Experiment 2's
-result (oracle is ~6x better than zero-action) this is a second, independent
-signal that F1's foresight computation is causally load-bearing for action
-selection, not an unused ritual — consistent in direction with (not
-identical to) E2's finding.
-
-**Caveat — the confound the slide table already flags is not yet ruled
-out.** This result cannot yet distinguish "the module's *information*
-matters" from "the model has just never seen this shorter, gen-token-absent
-sequence shape during training and degrades on any unfamiliar input shape."
-Variant 2 (shuffle real foresight tokens across episodes — same sequence
-shape as training, wrong episode's content) is the clean version without
-this confound and is not yet implemented.
-
-## Results — variant 2, offline probe (120 samples, same seed/protocol)
-
-Implemented by reusing Experiment 2's already-validated oracle mechanism
-unchanged (`oracle_indices` hook, `F1VLAOracleInference`) — no new model
-code at all. The only change from the oracle condition: the injected real
-frame comes from a *different, randomly paired episode* instead of this
-episode's own true next frame (paired by a fixed shift through the same
-seed=0 sample list, so every condition below is evaluated on the identical
-120 moments). See
-[`kv_shuffle_offline_probe.py`](kv_shuffle_offline_probe.py).
-
-**Combined table, all four conditions on the same 120 paired samples:**
-
-| condition | full action L1 |
-|---|---|
-| baseline (self-imagined foresight, default) | 0.0176 |
-| **oracle** (real future, own episode — Experiment 2) | **0.0157** |
-| **shuffled** (real future, wrong episode — variant 2) | **0.0157** |
-| ablated (no foresight at all — variant 1) | 0.0272 |
-| zero-action baseline | 0.0946 |
-
-**How to read it — this changes variant 1's interpretation.** Oracle and
-shuffled are *identical* to three significant figures, despite shuffled's
-content being from a completely unrelated episode. If the model were using
-episode-specific future information, shuffled should sit clearly between
-baseline and oracle, not match oracle exactly. It doesn't: **the model
-appears indifferent to whether the injected frame is correct, only to
-whether *some* real (non-imagined) image is present in that slot at all.**
-Combined with ablated being the clear outlier (much worse than all three
-conditions with *some* image present, real or wrong-episode), the most
-consistent reading is that variant 1's earlier degradation is better
-explained by its confound (unfamiliar, shorter sequence shape) than by loss
-of genuine information — variant 2 was designed to distinguish exactly this,
-and comes down against "input-specific information is used."
-
-This is a meaningful data point for the central research question: it leans
-toward the foresight slot acting as something closer to a **structural/
-training-time crutch** (needs *a* real image there, in-distribution,
-regardless of content) rather than a channel carrying causally-used,
-episode-specific predictive information — closer to mimic-video's finding
-(oracle ≈ no help there either) than to a clean "world modelling as
-control" story, though via a different mechanism (F1: any real image helps
-equally; mimic: even the real image doesn't help).
+Both variants were first checked with an offline probe (predicted action
+vs. logged action on real `bridge_orig_lerobot` moments, same protocol as
+`../experiment2_oracle`'s offline probe) before the real closed-loop runs
+below. Those numbers are not reported here: with no held-out split, any gap
+is confounded with memorization and isn't decisive evidence either way —
+same reasoning that makes closed-loop success rate this experiment's actual
+metric, not L1 against a logged action. Kept for the record, not cited, in
+`OFFLINE_PROBE_BACKLOG.md`.
 
 ## Results — variant 1, REAL closed-loop SimplerEnv-Bridge (the result that matters)
 
@@ -198,16 +132,9 @@ strongest evidence yet (stronger than the offline probe, immune to its
 memorization concern) that the foresight computation is causally
 load-bearing for action selection, not a training-time-only effect.
 
-Read alongside variant 2's offline finding (oracle ≈ shuffled — the model
-doesn't care *which* episode's real image goes in the slot, only that a
-real one is there): the combined picture is that the module's causal weight
-comes from something like "conditioning on a real, in-distribution image
-signal helps regardless of its specific predictive content" — this closed-
-loop result confirms the module matters for real outcomes, while variant 2
-narrows *why* (plausibly not "genuine future prediction," more like
-"real-image conditioning/regularization"). Variant 2 has not yet been run
-in real closed loop (see below) to confirm this reading holds under the
-same memorization-robust test.
+Variant 2's closed-loop run (below) tests directly whether the module cares
+*which* episode's real image fills the slot, or merely that a real one is
+there at all.
 
 ## Results — variant 2, REAL closed-loop SimplerEnv-Bridge
 
@@ -229,8 +156,7 @@ as variant 1 and the baseline.
 | Put Eggplant in Basket | 69.4% | 62.5% | **70.8%** (70.8/70.8/70.8) |
 | **average** | **48.6%** | **34.7%** | **50.0%** |
 
-**How to read it: this confirms the offline finding on the memorization-
-robust metric.** Shuffled matches or slightly exceeds baseline on *every
+**How to read it.** Shuffled matches or slightly exceeds baseline on *every
 single task*, never falling below it — the opposite pattern from ablated,
 which fell below baseline on every task. Combined with variant 1's result,
 the full picture across all three closed-loop conditions is consistent and
