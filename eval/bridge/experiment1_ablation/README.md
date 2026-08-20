@@ -148,6 +148,21 @@ startup (`_load_frame_pool`), sampled with a seed-dependent RNG so each of
 the 3 eval seeds is reproducible. Same 4-task × 3-seed × 24-episode protocol
 as variant 1 and the baseline.
 
+**Precisely what "wrong episode" means here (verified against the code,
+2026-08-21, not just the design intent):** the 64-frame pool is drawn once
+via `rng.choice(meta.total_episodes, size=64, replace=False)`
+(`np.random.default_rng(seed=123)`) over **every episode in the entire
+`bridge_orig_lerobot` dataset**, with no task filtering at all — task
+identity is never read when building the pool. So while evaluating Carrot,
+the substituted frame can just as easily come from Spoon, Stack, or
+Eggplant (a genuinely different scene, and for Eggplant a different robot
+camera rig, `widowx_sink_camera_setup` vs. `widowx`) as from a different
+Carrot episode. A fresh index is drawn from this pool on **every control
+step** (`self._shuffle_rng.integers(...)`, reseeded from `--f1-seed`), not
+fixed once per episode. This makes the finding below stronger than "doesn't
+care which episode" — it's "doesn't care which episode, which task, or
+which camera rig," provided some real Bridge frame occupies the slot.
+
 | task | baseline | ablated (variant 1) | **shuffled (variant 2)** |
 |---|---|---|---|
 | Put Carrot on Plate | 34.7% | 20.8% | **36.1%** (37.5/29.2/41.7) |
@@ -163,7 +178,8 @@ the full picture across all three closed-loop conditions is consistent and
 clean:
 
 **no real image in the foresight slot (ablated) < self-imagined foresight
-(baseline) ≤ any real image, right or wrong episode (shuffled)**
+(baseline) ≤ any real Bridge image, right episode, wrong episode, or even a
+different task/camera rig entirely (shuffled)**
 
 This closed-loop result rules out the memorization concern for the earlier
 offline reading: it isn't that the model merely "recognizes" a memorized
@@ -185,3 +201,11 @@ even though removing it still measurably hurts.
 - [x] Implement variant 2 (KV-shuffle across episodes, offline probe).
 - [x] Run variant 1 on real SimplerEnv-Bridge closed-loop.
 - [x] Run variant 2 on real SimplerEnv-Bridge closed-loop.
+- [ ] **Confound not yet separated:** the shuffle pool draws from the
+      entire `bridge_orig_lerobot` dataset with no task filtering (verified
+      2026-08-21 — see the pool description above), so "wrong episode,
+      same task" and "wrong task entirely" are currently mixed into one
+      condition. A cleaner variant 2b would restrict the pool to
+      same-task-wrong-episode only, to check whether F1's "any real image
+      works" finding survives at that finer grain or only holds once
+      cross-task frames are included.
