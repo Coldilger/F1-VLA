@@ -80,21 +80,83 @@ mechanism is being used, not just present as a ritual. This is a strong
 candidate for the "world modelling as control" cell of the taxonomy
 (Slide 16) — at least for F1.
 
+## Live oracle probe (closed-loop, randomized) — memorization check
+
+The offline probe above replays `bridge_orig_lerobot` — the exact dataset F1
+was finetuned on, with no held-out split (caveat 1 below). This probe reuses
+the identical oracle mechanism (`F1VLAOracleInference.predict_action_given_true_next_frame`,
+unmodified) but sources it from a live, randomized SimplerEnv-Bridge rollout
+instead: object placement is randomized per episode by SimplerEnv itself
+(the same mechanism Experiment 1's own closed-loop eval already uses), so
+verbatim recall of a specific trajectory is impossible here (distributional
+overfitting to the task family is a separate, softer question this doesn't
+rule out).
+
+**Design.** A normal closed-loop rollout runs with the REAL (non-oracle)
+policy driving the robot — behavior is completely unaffected, this is a pure
+side computation. At each real replan, a second oracle-only model instance
+is additionally queried with the true next frame, and its predicted action
+is compared against what the real policy itself did at that same decision
+point.
+
+**Why the comparison is restricted to successful episodes.** There is no
+ground truth here the way the offline probe has expert demonstrations —
+"the real policy's own action" is the only available reference, and the
+real policy only succeeds on part of its episodes. On a failed episode, the
+policy's own action wasn't good, so an oracle prediction that *diverges*
+from it could be an improvement, not an error — L1-against-a-mediocre-
+baseline can't tell the two apart. Restricting to episodes SimplerEnv scored
+as successful (`maniskill2_evaluator`'s own `success_arr`) makes the
+reference "real behavior that actually worked" — not a full fix (not every
+action inside a successful episode is necessarily optimal), but a real
+improvement over comparing against unfiltered behavior.
+Implementation: `main_inference_live_oracle.py`.
+
+### Results (job 631445, task PutCarrotOnPlateInScene-v0, 24 episodes)
+
+Average success: **45.8%** (11/24).
+
+| | all samples (n=336) | successful episodes only (n=154) |
+|---|---|---|
+| oracle L1 vs real policy's own action | 0.02021 (sd 0.03532) | **0.01399** (sd 0.02649) |
+| magnitude of the real action itself | 0.11030 | 0.11305 |
+
+**How to read it.** Given the true next frame, the oracle's predicted action
+stays close to what the real (non-oracle) policy already did on episodes
+that worked — about 8x smaller than the action's own magnitude. A perfect
+future frame barely moves the prediction away from what the model predicts
+without it. This reinforces Experiment 1's own live finding (oracle ≈
+shuffled ≈ baseline, all ≈0.0157 offline) on unmemorizable, randomized data:
+the causal footprint of forecast *correctness* specifically looks small,
+even though Experiment 1 also shows the mere *presence* of a real image in
+that slot does matter (ablated is worse than both).
+
+**What this does not establish.** This is not a closed-loop oracle
+success-rate number — the oracle here is a side-channel query, never
+actually driving the robot, so it says nothing about whether an
+oracle-driven rollout would succeed more often than the real policy does.
+That number is still the "Not yet done" item below.
+
 ## Not yet done
 
-- [ ] **Closed-loop success-rate evaluation.** The precedent this experiment
-  extends (mimic-video's own paper, Section III/Fig. 2) reports **closed-loop
-  success rate**, not offline single-step L1 — the number above is a cheaper
-  proxy for the causal question, not a replication of the paper's own
-  reported metric. Getting a genuine closed-loop oracle number is harder than
-  it looks: once the model's own action diverges from the logged trajectory,
-  there is no pre-recorded "real future" left to inject at the next step. The
-  source paper handled this via live human teleoperation (mimic-video's own
-  `main_inference_hil.py` / `eval_hil.sh`, "human-in-the-loop evaluation
-  (oracle study)") — expensive per episode, and not yet run for any of the
-  three models. Until this exists, read the L1 numbers above as a cheap
-  offline signal that the mechanism *can* use real future information, not
-  as evidence about closed-loop success rate specifically.
+- [ ] **Closed-loop success-rate evaluation** — i.e. the oracle actually
+  driving the robot, not just a side-channel query compared against the real
+  policy's own action. The precedent this experiment extends (mimic-video's
+  own paper, Section III/Fig. 2) reports **closed-loop success rate**, not
+  offline/live single-step L1 — everything above (both the original offline
+  probe and the live probe) is a cheaper proxy for the causal question, not
+  a replication of the paper's own reported metric. Getting a genuine
+  closed-loop oracle number is harder than it looks: once the model's own
+  action diverges from the logged trajectory, there is no pre-recorded "real
+  future" left to inject at the next step. The source paper handled this via
+  live human teleoperation (mimic-video's own `main_inference_hil.py` /
+  `eval_hil.sh`, "human-in-the-loop evaluation (oracle study)") — expensive
+  per episode, and not yet run for any of the three models. Until this
+  exists, read the L1 numbers above as a cheap signal that the mechanism
+  *can* use real future information, not as evidence about closed-loop
+  success rate specifically.
+- [ ] Seed repeats for the live probe (currently one run, 24 episodes, one
+  task) — see caveat 2 below, which applies here too.
 
 ## Caveats
 

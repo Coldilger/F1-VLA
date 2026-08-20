@@ -24,10 +24,16 @@ LDA-1B forks, each with a model-specific implementation.
   mimic-video's own paper (arXiv:2512.15692, Section III / Fig. 2). Offline
   single-step L1 results exist for F1 and mimic-video (see
   `experiment2_oracle/ORACLE_EXPERIMENT.md` in each repo); LDA-1B's are
-  pending a retrain (see LDA-1B's copy). **Closed-loop success-rate
-  evaluation — the metric the precedent paper itself reports — is still
-  outstanding for all three models**; see the "Not yet done" section of
-  `ORACLE_EXPERIMENT.md`.
+  pending a retrain (see LDA-1B's copy). A **live, randomized-rollout probe**
+  now exists too (memorization-resistant, unlike the offline probe above) —
+  for F1, n=24 episodes, oracle ≈ the real policy's own action on successful
+  episodes, reinforcing Experiment 1's "content doesn't matter much"
+  reading; for mimic, n=24 episodes but flagged preliminary pending an
+  unresolved success-rate anomaly (20.8% vs. an established 41.7% baseline)
+  — see each repo's own `ORACLE_EXPERIMENT.md`. **Closed-loop success-rate
+  evaluation with the oracle actually driving the robot — the metric the
+  precedent paper itself reports — is still outstanding for all three
+  models**; see the "Not yet done" section of `ORACLE_EXPERIMENT.md`.
 - [`experiment3_cost/`](experiment3_cost/) — **Cost per decision.**
   Characterizes how much inference-time compute each model actually spends
   on its world-model computation, and at what latency/success-rate
