@@ -32,8 +32,10 @@ LDA-1B forks, each with a model-specific implementation.
   held-out split, not a citable result.) LDA-1B's live probe (via RoboCasa)
   is done too — see LDA-1B's own copy. **Closed-loop success-rate evaluation
   with the oracle actually driving the robot — the metric the precedent
-  paper itself reports — is still outstanding for all three models**; see
-  the "Not yet done" section of `ORACLE_EXPERIMENT.md`.
+  paper itself reports — is not being pursued for any of the three models**,
+  not an outstanding TODO — it needs live human teleoperation per episode,
+  out of scope for this thesis; see the "Not pursued" section of
+  `ORACLE_EXPERIMENT.md`.
 - [`experiment3_cost/`](experiment3_cost/) — **Cost per decision.**
   Characterizes how much inference-time compute each model actually spends
   on its world-model computation, and at what latency/success-rate

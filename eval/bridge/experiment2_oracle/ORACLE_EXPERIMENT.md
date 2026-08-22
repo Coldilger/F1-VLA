@@ -120,25 +120,31 @@ that slot does matter (ablated is worse than both).
 success-rate number — the oracle here is a side-channel query, never
 actually driving the robot, so it says nothing about whether an
 oracle-driven rollout would succeed more often than the real policy does.
-That number is still the "Not yet done" item below.
+See "Not pursued" below for why that number doesn't exist and isn't
+coming.
 
-## Not yet done
+## Not pursued (a deliberate scope decision, not an oversight)
 
-- [ ] **Closed-loop success-rate evaluation** — i.e. the oracle actually
+- **Closed-loop success-rate evaluation** — i.e. the oracle actually
   driving the robot, not just a side-channel query compared against the real
   policy's own action. The precedent this experiment extends (mimic-video's
   own paper, Section III/Fig. 2) reports **closed-loop success rate**, not
   single-step L1 — the live probe above is a cheaper proxy for the causal
-  question, not a replication of the paper's own reported metric. Getting a genuine
-  closed-loop oracle number is harder than it looks: once the model's own
-  action diverges from the logged trajectory, there is no pre-recorded "real
-  future" left to inject at the next step. The source paper handled this via
-  live human teleoperation (mimic-video's own `main_inference_hil.py` /
-  `eval_hil.sh`, "human-in-the-loop evaluation (oracle study)") — expensive
-  per episode, and not yet run for any of the three models. Until this
-  exists, read the L1 numbers above as a cheap signal that the mechanism
-  *can* use real future information, not as evidence about closed-loop
-  success rate specifically.
+  question, not a replication of the paper's own reported metric. Getting a
+  genuine closed-loop oracle number is harder than it looks: once the
+  model's own action diverges from the logged trajectory, there is no
+  pre-recorded "real future" left to inject at the next step. The source
+  paper handled this via live human teleoperation (mimic-video's own
+  `main_inference_hil.py` / `eval_hil.sh`, "human-in-the-loop evaluation
+  (oracle study)") — a real per-episode human in the loop, not a script.
+  **Not being run for any of the three models in this thesis** — the
+  infrastructure and time cost don't fit the scope here, not a TODO waiting
+  on availability. Read the L1 numbers above as a cheap signal that the
+  mechanism *can* use real future information, not as evidence about
+  closed-loop success rate specifically, permanently — not "for now."
+
+## Not yet done
+
 - [ ] Seed repeats for the live probe (currently one run, 24 episodes, one
   task) — see caveat 2 below, which applies here too.
 
