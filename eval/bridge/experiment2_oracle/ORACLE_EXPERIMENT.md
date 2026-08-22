@@ -110,11 +110,53 @@ Average success: **45.8%** (11/24).
 stays close to what the real (non-oracle) policy already did on episodes
 that worked — about 8x smaller than the action's own magnitude. A perfect
 future frame barely moves the prediction away from what the model predicts
-without it. This reinforces Experiment 1's own live finding (oracle ≈
-shuffled ≈ baseline, all ≈0.0157 offline) on unmemorizable, randomized data:
-the causal footprint of forecast *correctness* specifically looks small,
-even though Experiment 1 also shows the mere *presence* of a real image in
-that slot does matter (ablated is worse than both).
+without it.
+
+**This number alone is ambiguous, and it's worth being explicit about why.**
+A small gap between oracle and the model's own (self-imagined-future)
+action has two possible explanations that are opposite in what they'd mean
+for the thesis's research question:
+
+- (a) The model's own imagined future is already close to correct, so
+  substituting the real one barely changes anything — a ceiling effect. If
+  true, this would mean the foresight computation is doing real, accurate
+  work; the causal ingredient here would be forecast *quality*, and it's
+  already high.
+- (b) The action-decoding step doesn't read out the future frame's specific
+  content in a fine-grained way at all — a right guess, a wrong guess, and
+  the model's own guess all land in roughly the same place, because
+  correctness just isn't what this mechanism is sensitive to.
+
+These two stories predict the identical number. Exp2 alone cannot tell
+them apart — resolving this needs Exp1.
+
+**Exp1 resolves it, in favor of (b).** Exp1's shuffled condition (a real
+frame from a *different, wrong* episode — not a plausible guess, an
+outright incorrect one) performs statistically the same as baseline
+(50.0% vs. 48.6%), while ablated (no frame at all) performs clearly worse
+(34.7%). If (a) were true — the model's own forecasts are already accurate,
+so correctness stops mattering once you're near-ceiling — a deliberately
+*wrong* frame from an unrelated episode should have hurt, the same way
+feeding a language model the wrong context hurts. It doesn't. That rules
+out (a) and confirms (b): the mechanism needs *some* frame occupying that
+structural slot, and is functionally indifferent to what's actually in it
+— correct, wrong, or self-imagined alike.
+
+**Put together, Exp1 + Exp2 give one specific, falsifiable conclusion for
+F1-VLA:** the world-model computation is a structural dependency, not a
+forecasting one. It is causally load-bearing (Exp1: ablation hurts) but not
+on forecast accuracy (Exp1: shuffled doesn't hurt; Exp2: oracle doesn't
+move the decision either) — "an expensive ritual that must be performed,
+not a signal that must be read." Neither experiment reaches this
+conclusion alone; each is genuinely ambiguous in isolation the way Exp2 is
+described above.
+
+One more limit on even this resolved reading: it only concerns whether the
+model's *decision* is sensitive to forecast accuracy — not whether a more
+accurate forecast would lead to *better* outcomes. Oracle never drives the
+robot here (side-channel query only), so that closed-loop question has no
+number attached to it at all; see "Not pursued" below for why it stays
+that way.
 
 **What this does not establish.** This is not a closed-loop oracle
 success-rate number — the oracle here is a side-channel query, never
