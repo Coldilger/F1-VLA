@@ -84,6 +84,23 @@ is additionally queried with the true next frame, and its predicted action
 is compared against what the real policy itself did at that same decision
 point.
 
+**Where the real next frame actually comes from — this is not foresight.**
+The simulator is a live physics engine, not a lookup into a pre-recorded
+dataset. At every control tick the real policy observes the current frame
+and picks an action; the simulator executes it and genuinely advances,
+producing the next frame as a direct physical consequence — nothing here
+is predicted or fetched in advance. The oracle query is retrospective, not
+prospective: once the simulator has already stepped forward (which it has
+to do anyway to keep the real rollout running), that now-already-happened
+frame becomes available, and the probe asks a one-step-late "what if"
+question — if the model, back at the previous replan, had been given this
+frame (now known) instead of generating its own guess, what action would
+it have picked? That hypothetical action is compared against what the real
+policy actually did at that earlier decision point. The oracle's own
+answer is never executed and never touches the robot's real trajectory —
+the robot's entire path through the simulator is driven by the real policy
+alone, exactly as if this probe didn't exist.
+
 **Why the comparison is restricted to successful episodes.** There is no
 ground truth here the way the offline probe has expert demonstrations —
 "the real policy's own action" is the only available reference, and the
