@@ -182,6 +182,43 @@ nonlinearity is not the explanation for F1's current-pose failure — the
 representation (`gen_out` tokens) genuinely does not encode pose here,
 under either probe family.
 
+## Untested hypothesis (2026-08-23): real-photo offline replay vs. live simulated rollout
+
+A fifth possible explanation for the current-pose failure, distinct from
+the four already checked above (pooling, episode-identity confound, data
+scarcity, nonlinearity) — none of which touched this axis: this extraction
+replays real Bridge camera footage (`bridge_orig_lerobot`, the exact
+dataset F1 was finetuned on — expert demonstrations, not this model's own
+behavior), not a live rollout. LDA-1B's own Exp4, by contrast, extracts
+from a live RoboCasa simulator rollout driven by LDA-1B's own checkpoint.
+
+**Two genuinely different things are entangled in that comparison, not
+one:** (a) real photograph vs. simulated render, and (b) recorded expert
+trajectory vs. the model's own live behavior. Either could in principle be
+masking a real signal — real-world visual noise/clutter could swamp a
+pose signal that a cleaner render would expose, and expert-trajectory
+statistics could differ from what the model itself produces.
+
+**Switching this extraction to a live SimplerEnv-Bridge rollout is not a
+guaranteed fix, and has a real cost of its own worth naming plainly.**
+F1-VLA was finetuned and is evaluated on real Bridge photographs — that is
+this model's actual training domain, and the current (real-photo)
+extraction tests it in-distribution. A live SimplerEnv-Bridge rollout uses
+*rendered, simulated* frames F1 never trained on — the same flavor of
+domain gap that produced LDA-1B's own 48%→0% Bridge collapse, here at
+presumably much smaller scale (F1's own closed-loop success rate on
+SimplerEnv-Bridge, 48.6%, shows real but imperfect sim-to-real transfer,
+not a wall). Moving Exp4 onto a live rollout would trade one asymmetry
+(different benchmark from LDA) for a different one (F1 tested
+out-of-distribution while LDA stays in-distribution on RoboCasa) — not
+clean parity. It could reveal a real signal noise was masking, or it could
+produce a new negative result for an unrelated reason (out-of-distribution
+inputs), or both effects could partially cancel. Genuinely open; not run.
+Real engineering cost too — see the artifact's own feasibility note: this
+means rewriting `extract_features.py`'s core loop from dataset replay to a
+live-rollout loop (reusable pattern: `main_inference.py`'s own closed-loop
+driver), not a one-line change.
+
 ## Not yet done
 
 - [ ] Re-run mimic-video's equivalent more-episodes extraction (in progress:
