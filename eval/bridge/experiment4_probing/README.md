@@ -219,6 +219,62 @@ means rewriting `extract_features.py`'s core loop from dataset replay to a
 live-rollout loop (reusable pattern: `main_inference.py`'s own closed-loop
 driver), not a one-line change.
 
+## Update (2026-08-25): the fifth hypothesis, actually tested — live rollout, still negative
+
+The "Untested hypothesis" section above named this as open but unrun. It's
+now run. New, purely additive files (nothing above was touched or
+re-extracted): `extract_features_live.py` (reuses `capturing_forward` /
+`collect_real_tokens` / `make_projection` / the same fixed seed-12345
+projection verbatim from `extract_features.py`, and the same `pose_vector`
+convention — position + the rotation matrix's first two rows — built from a
+live pose's (p, q) instead of a dataset row's (pos, euler rpy)), driven
+through a live, randomized SimplerEnv-Bridge closed-loop rollout
+(`main_inference_live_oracle.py`'s own wrapping pattern: `step()` buffers
+per-tick pose, `_predict_new_chunk` captures `gen_out` once per real replan;
+`(state_t, state_{t+horizon})` pairs are resolved after the full rollout
+finishes, same as this experiment's future-delta target elsewhere).
+
+**Scope, stated plainly:** single task/scene
+(`PutCarrotOnPlateInScene-v0` / `bridge_table_1_v1`), matching
+`experiment2_oracle/live_oracle_n24.slurm`'s own precedent for this
+codebase's live-rollout scripts — narrower than the offline extraction's
+free sampling across the full multi-task Bridge dataset. 24 episodes,
+horizon=5 ticks (~1s at the 5Hz control rate used here). Smoke-tested at
+n=6 first (job 636579, clean), then run at n=24 (job 636628,
+`features_live_n24.npz`): 41.7% task success, 336 resolved samples (24
+replans dropped — too close to their episode's end for a 5-tick future).
+
+**Result:**
+
+| | val L1 |
+|---|---|
+| ridge probe (primary) | 0.04433 |
+| MLP probe (capacity check) | 0.04922 |
+| best constant (mean pred) | 0.04169 |
+| no-motion (predict zero) | 0.03960 |
+
+Ridge does not beat the mean predictor (−6.3% relative, i.e. worse). Worth
+naming explicitly: **the mean predictor itself doesn't beat no-motion**
+here — the average 5-tick delta across the training episodes carries no
+more signal than predicting zero motion. Both baselines beat the probe.
+
+**How to read this.** The live-rollout run reproduces the same negative
+result as the offline (real-photo) extraction — no reversal. But per the
+caveat already on record before this ran: this live-sim setting is
+out-of-distribution for F1 (never trained on simulated Bridge renders,
+unlike LDA-1B's native-RoboCasa Exp4), so a null result here does not
+cleanly confirm "the representation is content-blind, regardless of
+real-vs-sim" over "OOD domain shift is itself swamping whatever signal
+exists" — the two stories predict the same outcome, the same ambiguity
+structure as Exp2's own oracle-vs-self-imagined result elsewhere in this
+repo. What this result *does* rule out: it is not the case that switching
+to a live rollout unlocks a positive result that the offline replay was
+somehow suppressing. Read as one more negative data point under a
+different, imperfect set of confounds — not a tiebreaker between the real-
+photo-vs-sim and expert-trajectory-vs-own-behavior explanations named in
+the "Untested hypothesis" section, which remain entangled here exactly as
+predicted there.
+
 ## Not yet done
 
 - [ ] Re-run mimic-video's equivalent more-episodes extraction (in progress:

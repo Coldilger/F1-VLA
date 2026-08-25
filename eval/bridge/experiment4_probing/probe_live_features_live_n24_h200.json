@@ -1,0 +1,15 @@
+{
+  "variant": "finetuned_live",
+  "horizon": 5,
+  "n_samples": 336,
+  "feature_dim": 960,
+  "n_train_episodes": 18,
+  "n_val_episodes": 6,
+  "probe_val_l1": 0.04432953261773313,
+  "ridge_val_l1": 0.04432953261773313,
+  "ridge_alpha": 4641.588833612773,
+  "mlp_val_l1": 0.04921643063426018,
+  "mean_pred_val_l1": 0.04168616235256195,
+  "nomotion_val_l1": 0.03960061073303223,
+  "beats_mean_predictor": false
+}
