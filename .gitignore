@@ -11,3 +11,7 @@ eval/bridge/SimplerEnv/results/
 # results (README.md) belong in the repo, matching the convention used
 # throughout eval/bridge/ -- .npz files are regenerable from extract.slurm.
 eval/*/experiment*/*.npz
+
+# symlinks to scratch, see setup_scratch_links.sh
+/outputs
+/checkpoints

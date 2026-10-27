@@ -29,8 +29,8 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA")
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge")
+sys.path.insert(0, "/home/3295540/F1-VLA")
+sys.path.insert(0, "/home/3295540/F1-VLA/eval/bridge")
 
 from f1_vla_policy import F1VLAInference  # noqa: E402
 
@@ -42,8 +42,8 @@ class _PoseProxy:
 
 
 def main():
-    checkpoint_path = "/mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune"
-    stats_path = "/mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json"
+    checkpoint_path = "/home/3295540/F1-VLA/outputs/bridge_finetune"
+    stats_path = "/home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json"
 
     model = F1VLAInference(checkpoint_path=checkpoint_path, stats_path=stats_path, seed=0)
 

@@ -17,8 +17,8 @@ Example (once environment is set up):
         --robot widowx \
         --env-name PutCarrotOnPlateInScene-v0 \
         --scene-name bridge_table_1_v1 \
-        --f1-checkpoint-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune \
-        --f1-stats-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json
+        --f1-checkpoint-path /home/3295540/F1-VLA/outputs/bridge_finetune \
+        --f1-stats-path /home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json
 """
 
 import argparse
@@ -27,7 +27,7 @@ import sys
 
 import numpy as np
 
-SIMPLER_ENV_ROOT = "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv"
+SIMPLER_ENV_ROOT = "/home/3295540/F1-VLA/eval/bridge/SimplerEnv"
 sys.path.insert(0, SIMPLER_ENV_ROOT)
 
 from simpler_env.evaluation.argparse import get_args  # noqa: E402

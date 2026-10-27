@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --time=02:00:00
-#SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/live-oracle-n24-%j.out
+#SBATCH --output=/home/3295540/F1-VLA/slurm/logs/live-oracle-n24-%j.out
 
 # Live oracle probe, smoke stage: does the whole pipeline (real rollout +
 # side-channel oracle re-query on a second model instance) run end to end
@@ -13,19 +13,19 @@
 # Two F1-VLA instances loaded simultaneously (one driving, one oracle-only) --
 # ~8.4B params total, well within H100/H200 headroom.
 
-export MS2_REAL2SIM_ASSET_DIR=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
+export MS2_REAL2SIM_ASSET_DIR=/home/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
 export DISPLAY=""
 export HF_HOME=/mnt/beegfsnew/scratch/3295540/hf_cache
 
-SIMPLER=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv
+SIMPLER=/home/3295540/F1-VLA/eval/bridge/SimplerEnv
 cd "$SIMPLER"
 
 /home/3295540/.conda/envs/f1_vla_eval/bin/python \
-  /mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/experiment2_oracle/main_inference_live_oracle.py \
-  --f1-checkpoint-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune \
-  --f1-stats-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json \
+  /home/3295540/F1-VLA/eval/bridge/experiment2_oracle/main_inference_live_oracle.py \
+  --f1-checkpoint-path /home/3295540/F1-VLA/outputs/bridge_finetune \
+  --f1-stats-path /home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json \
   --f1-seed 0 \
-  --ckpt-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune \
+  --ckpt-path /home/3295540/F1-VLA/outputs/bridge_finetune \
   --robot widowx --policy-setup widowx_bridge \
   --control-freq 5 --sim-freq 500 --max-episode-steps 60 \
   --env-name PutCarrotOnPlateInScene-v0 --scene-name bridge_table_1_v1 \

@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
 #SBATCH --time=01:00:00
-#SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/live-extract-smoke-h200-%j.out
+#SBATCH --output=/home/3295540/F1-VLA/slurm/logs/live-extract-smoke-h200-%j.out
 
 # Live-rollout Exp4 feature extraction, smoke stage: does the whole pipeline
 # (real rollout + per-tick pose buffering + per-replan gen_out capture +
@@ -13,21 +13,21 @@
 # committing to a larger episode count. Single F1-VLA instance (no second
 # oracle model needed here).
 
-export MS2_REAL2SIM_ASSET_DIR=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
+export MS2_REAL2SIM_ASSET_DIR=/home/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
 export DISPLAY=""
 export HF_HOME=/mnt/beegfsnew/scratch/3295540/hf_cache
 
-SIMPLER=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv
+SIMPLER=/home/3295540/F1-VLA/eval/bridge/SimplerEnv
 cd "$SIMPLER"
 
 /home/3295540/.conda/envs/f1_vla_eval/bin/python \
-  /mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/experiment4_probing/extract_features_live.py \
-  --f1-checkpoint-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune \
-  --f1-stats-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json \
+  /home/3295540/F1-VLA/eval/bridge/experiment4_probing/extract_features_live.py \
+  --f1-checkpoint-path /home/3295540/F1-VLA/outputs/bridge_finetune \
+  --f1-stats-path /home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json \
   --f1-seed 0 \
-  --out /mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/experiment4_probing/features_live_smoke_h200.npz \
+  --out /home/3295540/F1-VLA/eval/bridge/experiment4_probing/features_live_smoke_h200.npz \
   --horizon 5 \
-  --ckpt-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune \
+  --ckpt-path /home/3295540/F1-VLA/outputs/bridge_finetune \
   --robot widowx --policy-setup widowx_bridge \
   --control-freq 5 --sim-freq 500 --max-episode-steps 60 \
   --env-name PutCarrotOnPlateInScene-v0 --scene-name bridge_table_1_v1 \

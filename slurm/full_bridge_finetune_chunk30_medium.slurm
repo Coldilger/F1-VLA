@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=128G
 #SBATCH --time=06:00:00
-#SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/full-chunk30-%j.out
+#SBATCH --output=/home/3295540/F1-VLA/slurm/logs/full-chunk30-%j.out
 
 export HF_HOME=/mnt/beegfsnew/scratch/3295540/hf_cache
 export HF_HUB_DISABLE_XET=1
@@ -16,7 +16,7 @@ export WANDB_PROJECT=f1-vla-bridge
 # a single continuous curve.
 export WANDB_RUN_ID=bridge_finetune_chunk30
 export WANDB_RESUME=allow
-cd /mnt/beegfsnew/scratch/3295540/F1-VLA
+cd /home/3295540/F1-VLA
 
 # Auto-resume: if a checkpoint already exists, continue from it
 # (overwrite_output_dir=False lets train_hf pick up the last checkpoint).

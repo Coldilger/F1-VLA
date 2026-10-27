@@ -26,8 +26,8 @@ import sys
 import numpy as np
 import torch
 
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA")
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge")
+sys.path.insert(0, "/home/3295540/F1-VLA")
+sys.path.insert(0, "/home/3295540/F1-VLA/eval/bridge")
 
 from f1_vla_policy import F1VLAInference  # noqa: E402
 

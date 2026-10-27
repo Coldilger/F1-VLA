@@ -29,8 +29,8 @@ import sys
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA")
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge")
+sys.path.insert(0, "/home/3295540/F1-VLA")
+sys.path.insert(0, "/home/3295540/F1-VLA/eval/bridge")
 
 from lerobot.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata  # noqa: E402
 

@@ -6,7 +6,7 @@
 #SBATCH --mem=128G
 #SBATCH --time=06:00:00
 #SBATCH --signal=B:TERM@120
-#SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/full-chunk8-%j.out
+#SBATCH --output=/home/3295540/F1-VLA/slurm/logs/full-chunk8-%j.out
 
 # Self-chaining training. medium_gpunew caps jobs at 6h but 100k steps at
 # chunk_size=8 take ~30h, so training must run as several waves. Instead of an
@@ -18,8 +18,8 @@
 # it keeps going with no session, no monitor, no cron. The chain stops on its
 # own once checkpoint-100000 (the final step) exists.
 
-SCRIPT=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/full_bridge_finetune_chunk8_selfchain.slurm
-OUTDIR=/mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune_chunk8
+SCRIPT=/home/3295540/F1-VLA/slurm/full_bridge_finetune_chunk8_selfchain.slurm
+OUTDIR=/home/3295540/F1-VLA/outputs/bridge_finetune_chunk8
 
 resubmit_if_unfinished() {
   if [ -d "$OUTDIR/checkpoint-100000" ]; then
@@ -44,7 +44,7 @@ export WANDB_RESUME=allow
 # with `wandb sync wandb/offline-run-*`. Training must never depend on an
 # external service being reachable.
 export WANDB_MODE=offline
-cd /mnt/beegfsnew/scratch/3295540/F1-VLA
+cd /home/3295540/F1-VLA
 
 if ls outputs/bridge_finetune_chunk8/checkpoint-* >/dev/null 2>&1; then
   OVERWRITE=False

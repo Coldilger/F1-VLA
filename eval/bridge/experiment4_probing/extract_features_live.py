@@ -73,7 +73,7 @@ import numpy as np
 import torch
 from scipy.spatial.transform import Rotation
 
-SIMPLER_ENV_ROOT = "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv"
+SIMPLER_ENV_ROOT = "/home/3295540/F1-VLA/eval/bridge/SimplerEnv"
 sys.path.insert(0, SIMPLER_ENV_ROOT)
 
 from simpler_env.evaluation.argparse import get_args  # noqa: E402

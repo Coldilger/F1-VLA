@@ -5,16 +5,16 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=01:00:00
-#SBATCH --output=/mnt/beegfsnew/scratch/3295540/F1-VLA/slurm/logs/seeded-stack-s0-%j.out
+#SBATCH --output=/home/3295540/F1-VLA/slurm/logs/seeded-stack-s0-%j.out
 
 # libvulkan.so.1 now lives in the conda env's lib dir (in $HOME, purge-safe);
 # sapien finds it automatically, no LD_LIBRARY_PATH needed. (The earlier
 # scratch/vulkan_libs path got auto-purged because tar preserved its 2022 mtime.)
-export MS2_REAL2SIM_ASSET_DIR=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
+export MS2_REAL2SIM_ASSET_DIR=/home/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
 export DISPLAY=""
 export HF_HOME=/mnt/beegfsnew/scratch/3295540/hf_cache
 
-SIMPLER=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv
+SIMPLER=/home/3295540/F1-VLA/eval/bridge/SimplerEnv
 cd "$SIMPLER"
 
 # Minimal 24-episode single-task eval (PutCarrotOnPlateInScene) — real success rate to
@@ -22,11 +22,11 @@ cd "$SIMPLER"
 # sign). Not a real benchmark score — just "does the closed loop run end to end
 # and does the robot move plausibly".
 /home/3295540/.conda/envs/f1_vla_eval/bin/python \
-  /mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/main_inference.py \
-  --f1-checkpoint-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune \
-  --f1-stats-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json \
+  /home/3295540/F1-VLA/eval/bridge/main_inference.py \
+  --f1-checkpoint-path /home/3295540/F1-VLA/outputs/bridge_finetune \
+  --f1-stats-path /home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json \
   --f1-seed 0 \
-  --ckpt-path /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune \
+  --ckpt-path /home/3295540/F1-VLA/outputs/bridge_finetune \
   --robot widowx --policy-setup widowx_bridge \
   --control-freq 5 --sim-freq 500 --max-episode-steps 60 \
   --env-name StackGreenCubeOnYellowCubeBakedTexInScene-v0 --scene-name bridge_table_1_v1 \

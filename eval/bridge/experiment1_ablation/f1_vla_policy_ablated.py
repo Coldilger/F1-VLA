@@ -29,9 +29,9 @@ import sys
 
 import torch
 
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA")
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge")
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/experiment1_ablation")
+sys.path.insert(0, "/home/3295540/F1-VLA")
+sys.path.insert(0, "/home/3295540/F1-VLA/eval/bridge")
+sys.path.insert(0, "/home/3295540/F1-VLA/eval/bridge/experiment1_ablation")
 
 from f1_vla_policy import F1VLAInference  # noqa: E402
 from sample_without_world_model import sample_actions_without_world_model  # noqa: E402

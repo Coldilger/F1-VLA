@@ -77,8 +77,8 @@ import numpy as np
 import torch
 from scipy.spatial.transform import Rotation
 
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA")
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge")
+sys.path.insert(0, "/home/3295540/F1-VLA")
+sys.path.insert(0, "/home/3295540/F1-VLA/eval/bridge")
 
 from lerobot.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata  # noqa: E402
 
@@ -90,8 +90,8 @@ PROJECTION_SEED = 12345  # same convention/value as mimic-video's v2 extraction
 
 VARIANTS = {
     "finetuned": dict(
-        checkpoint_path="/mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune",
-        stats_path="/mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json",
+        checkpoint_path="/home/3295540/F1-VLA/outputs/bridge_finetune",
+        stats_path="/home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json",
     ),
     "pretrained": dict(
         # config.json here is a patched COPY of the HF snapshot's, with
@@ -100,13 +100,13 @@ VARIANTS = {
         # /fs-computility/efm/..., that doesn't resolve here). model.safetensors
         # is an unmodified symlink into the original snapshot -- see
         # checkpoints/pretrained_patched/ for how it was built.
-        checkpoint_path="/mnt/beegfsnew/scratch/3295540/F1-VLA/checkpoints/pretrained_patched",
+        checkpoint_path="/home/3295540/F1-VLA/checkpoints/pretrained_patched",
         # Bridge normalization stats aren't part of the pretrained release (it
         # was never finetuned on Bridge). Reusing the finetuned run's stats
         # only rescales predicted actions for readability; it has no effect
         # on gen_out, which is what this experiment probes -- unnormalized
         # inputs (images, state) go into the model identically either way.
-        stats_path="/mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json",
+        stats_path="/home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json",
     ),
 }
 

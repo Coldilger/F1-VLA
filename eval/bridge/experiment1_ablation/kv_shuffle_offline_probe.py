@@ -30,9 +30,9 @@ import time
 import numpy as np
 import torch
 
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA")
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge")
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/experiment2_oracle")
+sys.path.insert(0, "/home/3295540/F1-VLA")
+sys.path.insert(0, "/home/3295540/F1-VLA/eval/bridge")
+sys.path.insert(0, "/home/3295540/F1-VLA/eval/bridge/experiment2_oracle")
 
 from lerobot.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata  # noqa: E402
 
@@ -149,7 +149,7 @@ def run_kv_shuffle_probe(
 
 if __name__ == "__main__":
     run_kv_shuffle_probe(
-        checkpoint_path="/mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune",
-        stats_path="/mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json",
+        checkpoint_path="/home/3295540/F1-VLA/outputs/bridge_finetune",
+        stats_path="/home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json",
         dataset_root=pathlib.Path("/mnt/beegfsnew/scratch/3295540/data/bridge_orig_lerobot"),
     )

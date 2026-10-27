@@ -31,7 +31,7 @@ dataset:
 
 exp:
   stage: stage3_finetune_vla
-  load_ckpt: /mnt/beegfsnew/scratch/3295540/F1-VLA/outputs/bridge_finetune/model.safetensors
+  load_ckpt: /home/3295540/F1-VLA/outputs/bridge_finetune/model.safetensors
 
   training_args:
     output_dir: outputs/bridge_finetune_x2

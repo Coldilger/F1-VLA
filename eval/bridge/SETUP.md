@@ -35,7 +35,7 @@ $EVAL_PIP install matplotlib mediapy   # SimplerEnv's visualization.py needs the
 #    but we no longer depend on that project: it could be moved, changed or
 #    purged from scratch without breaking our eval, and our rollout results no
 #    longer land in someone else's results/ directory.
-SIMPLER=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv
+SIMPLER=/home/3295540/F1-VLA/eval/bridge/SimplerEnv
 (cd "$SIMPLER/ManiSkill2_real2sim" && $EVAL_PIP install -e . --no-deps)
 (cd "$SIMPLER" && $EVAL_PIP install -e . --no-deps)
 ```
@@ -74,7 +74,7 @@ at `/etc/vulkan/icd.d/nvidia_icd.json` — nothing to install for that.
 ## Runtime environment variables (set in any eval sbatch/srun job)
 
 ```bash
-export MS2_REAL2SIM_ASSET_DIR=/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
+export MS2_REAL2SIM_ASSET_DIR=/home/3295540/F1-VLA/eval/bridge/SimplerEnv/ManiSkill2_real2sim/data
 export DISPLAY=""   # headless; SAPIEN warns about GLFW/X11 then correctly renders offscreen
 ```
 

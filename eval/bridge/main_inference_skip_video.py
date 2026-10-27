@@ -25,7 +25,7 @@ robocasa-eval-derived launcher/run_client_agentview.py.
 import runpy
 import sys
 
-SIMPLER_ENV_ROOT = "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/SimplerEnv"
+SIMPLER_ENV_ROOT = "/home/3295540/F1-VLA/eval/bridge/SimplerEnv"
 sys.path.insert(0, SIMPLER_ENV_ROOT)
 
 from simpler_env.evaluation import maniskill2_evaluator  # noqa: E402
@@ -35,6 +35,6 @@ print("PATCHED: write_video is a no-op for this run (video encoding was crashing
 
 sys.argv[0] = "main_inference.py"
 runpy.run_path(
-    "/mnt/beegfsnew/scratch/3295540/F1-VLA/eval/bridge/main_inference.py",
+    "/home/3295540/F1-VLA/eval/bridge/main_inference.py",
     run_name="__main__",
 )

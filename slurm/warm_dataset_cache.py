@@ -5,7 +5,7 @@ os.environ.setdefault("HF_HOME", "/mnt/beegfsnew/scratch/3295540/hf_cache")
 import sys
 import time
 
-sys.path.insert(0, "/mnt/beegfsnew/scratch/3295540/F1-VLA")
+sys.path.insert(0, "/home/3295540/F1-VLA")
 
 from f1_vla.src.processors.data_processors.data_loader import _fast_path_is_file
 from lerobot.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
