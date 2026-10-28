@@ -6,9 +6,12 @@ SimplerEnv's evaluator has no seed: with --obj-variation-mode episode the
 object layout is a deterministic function of the episode index, so two
 conditions run over the same --obj-episode-range are already paired episode
 by episode. Per-episode outcomes are read from the evaluator's video file
-names: {success|failure}_obj_episode_{id}.mp4.
+names: {success|failure}_obj_episode_{id}[_<flag>_<True|False>...].mp4; the
+optional flags (moved_correct_obj, is_src_obj_grasped, ...) are summarized
+too, since they show how far a 0%-success condition still gets.
 
     python paired_stats.py BASELINE_DIR CONDITION_DIR [--boot 10000]
+        [--base-tag TAG] [--cond-tag TAG]   # keep only paths containing TAG
 
 Each DIR is searched recursively; the task is the env directory name
 (e.g. PutCarrotOnPlateInScene-v0_...) and the seed a `seedN` save tag, so
@@ -25,18 +28,20 @@ from collections import defaultdict
 
 import numpy as np
 
-_NAME = re.compile(r"^(success|failure)_obj_episode_(\d+)\.mp4$")
+_NAME = re.compile(r"^(success|failure)_obj_episode_(\d+)(_.*)?\.mp4$")
+# partial-progress flags the evaluator appends, e.g. _moved_correct_obj_False
+_FLAG = re.compile(r"_([a-z_]+?)_(True|False)(?=_|$)")
 _SEED = re.compile(r"seed(\d+)")
 
 
-def load_outcomes(root: pathlib.Path) -> dict[tuple[str, int, int], bool]:
+def load_outcomes(root: pathlib.Path, tag: str | None = None) -> dict[tuple[str, int, int], bool]:
     """(task, seed, episode) -> success. The seed comes from a `seedN` save
     tag in the path (F1-VLA's runs are genuinely seeded); 0 if absent
     (mimic-video's pipeline is deterministic, see its Exp1 method note)."""
     out = {}
     for mp4 in root.rglob("*.mp4"):
         m = _NAME.match(mp4.name)
-        if not m:
+        if not m or (tag and tag not in str(mp4.relative_to(root))):
             continue
         task = next((p.name.split("_")[0] for p in mp4.parents if "InScene" in p.name or "Scene-v" in p.name), "?")
         seed = _SEED.search(str(mp4.relative_to(root)))
@@ -45,6 +50,17 @@ def load_outcomes(root: pathlib.Path) -> dict[tuple[str, int, int], bool]:
             raise ValueError(f"conflicting outcomes for {key} under {root}")
         out[key] = m.group(1) == "success"
     return out
+
+
+def load_flags(root: pathlib.Path, tag: str | None = None) -> dict[str, list[bool]]:
+    flags: dict[str, list[bool]] = defaultdict(list)
+    for mp4 in root.rglob("*.mp4"):
+        m = _NAME.match(mp4.name)
+        if not m or (tag and tag not in str(mp4.relative_to(root))):
+            continue
+        for name, val in _FLAG.findall(m.group(3) or ""):
+            flags[name].append(val == "True")
+    return dict(flags)
 
 
 def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
@@ -108,8 +124,11 @@ def main() -> None:
     ap.add_argument("baseline_dir", type=pathlib.Path)
     ap.add_argument("condition_dir", type=pathlib.Path)
     ap.add_argument("--boot", type=int, default=10000)
+    ap.add_argument("--base-tag", default=None)
+    ap.add_argument("--cond-tag", default=None)
     a = ap.parse_args()
-    r = paired_report(load_outcomes(a.baseline_dir), load_outcomes(a.condition_dir), a.boot)
+    r = paired_report(load_outcomes(a.baseline_dir, a.base_tag),
+                      load_outcomes(a.condition_dir, a.cond_tag), a.boot)
     pct = lambda v: f"{100 * v:.1f}%"
     print(f"paired episodes: {r['n']}  (episodes present in only one run: {r['only_in_one']})")
     print("| task | n | baseline | condition |\n|---|---|---|---|")
@@ -123,6 +142,13 @@ def main() -> None:
     print(f"paired difference: {100 * r['diff']:+.1f} pp [stratified bootstrap 95%: {100 * lo:+.1f}, {100 * hi:+.1f}]")
     print(f"discordant pairs: baseline-only {r['discordant_base_only']}, condition-only "
           f"{r['discordant_cond_only']}; exact McNemar p = {r['mcnemar_p']:.4f}")
+    fb = load_flags(a.baseline_dir, a.base_tag)
+    fc = load_flags(a.condition_dir, a.cond_tag)
+    if fb or fc:
+        print("partial progress (episodes with flag True):\n| flag | baseline | condition |\n|---|---|---|")
+        for k in sorted(set(fb) | set(fc)):
+            b, c = fb.get(k, []), fc.get(k, [])
+            print(f"| {k} | {sum(b)}/{len(b)} | {sum(c)}/{len(c)} |")
 
 
 if __name__ == "__main__":
