@@ -12,7 +12,7 @@
 # identical settings and episodes (paired comparison via ../../paired_stats.py,
 # thesis protocol 4.4). Rerun 2026-10 after the scratch purge lost the
 # per-episode results. Required env vars: TASK, SEED, CONDITION
-# (baseline | zero | shuffle | meancollect | mean). Save tag:
+# (baseline | zero | shuffle | meancollect | mean | internals). Save tag:
 # exp1_${CONDITION}_seed${SEED}.
 
 set -u
@@ -31,6 +31,12 @@ case "$CONDITION" in
             export MEANKV_MODE=$([ "$CONDITION" = meancollect ] && echo collect || echo mean)
             mkdir -p /home/3295540/F1-VLA/eval/bridge/experiment1_ablation/closed_loop/meankv
             export MEANKV_PATH=/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/closed_loop/meankv/${TASK}.pt ;;
+  # internal diagnostics (internals/f1_internals_inference.py): a normal
+  # baseline rollout that also re-decodes every chunk under real / shuffle /
+  # mean / removed foresight and records masks, attention, KV stats, actions
+  internals)
+            ENTRY=/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/internals/main_inference_internals.py
+            export INTERNALS_OUT=/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/internals/records/${TASK} ;;
   *) echo "unknown CONDITION: $CONDITION" >&2; exit 2 ;;
 esac
 # RLIMIT_CPU (~600 CPU-seconds) kills sim evals mid-run without this

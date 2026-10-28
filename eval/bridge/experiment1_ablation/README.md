@@ -268,9 +268,56 @@ content of its foresight at inference, within about ±4–6 pp. This revises
 the earlier reading "F1 needs *some* real foresight": it needs the slot
 filled, not informative.
 
-**Not yet done:** internal diagnostics for F1 analogous to mimic-video's
-(attention mass the action expert puts on gen positions, activation
-statistics, action validity under each condition).
+## Internal diagnostics (2026-10-29, advisor point 2)
+
+**What it does** (`internals/f1_internals_inference.py`, summary
+`internals/analyze_internals.py` → `internals/summary.md`). The robot drives
+a normal baseline rollout (seed 0, 4 tasks × 24 episodes; the driving
+outcomes match the baseline run on 96/96 episodes). At every replan the
+shared KV cache, the prefix pad mask and the state are captured at the
+action expert's first denoising step, and the chunk is re-denoised from the
+same start noise under real / shuffle (Exp1 variant 2) / mean
+(mean-foresight control) / removed (Exp1 variant 1) foresight. The gen block
+is split into the encoded history and the generated future tokens (the VAR
+scale maps appended after the first scale). 1800 replans.
+
+| check | real | shuffle | mean | removed |
+|---|---|---|---|---|
+| prefix length (und + gen) | 1013 (304 + 709) | 1013 | 1013 | 304 (304 + 0) |
+| gen positions the action tokens may attend to | 709 of 709 | 709 | 709 | 0 |
+| first RoPE position id of the action tokens | 971–975 | same | same | 262–266 |
+| attention mass of action queries: und / history / future / own | 0.49 / 0.02 / 0.28 / 0.21 | same | 0.49 / 0.02 / 0.27 / 0.21 | 0.76 / 0 / 0 / 0.24 |
+| gen block change vs real, keys / values: history | — | 0 / 0 | 0.06 / 0.19 | — |
+| … future | — | 0.011 / 0.027 | 0.14 / 0.38 | — |
+| action change vs real (relative L2) | 0 | 0.003 | 0.009 | 0.41 |
+| NaN in actions | 0 | 0 | 0 | 0 |
+
+In-situ mask test (each episode's first replan, 5 gen positions): replacing
+one allowed gen position in the cache changes one denoising step's output
+(min 2.9%, median 9.0%); the same replacement with that position switched
+off in the model's own pad mask changes it by exactly 0.
+
+**What this shows.**
+1. Masks and shapes behave as intended: under the real, shuffle and mean
+   conditions the action tokens see the full foresight block; removal
+   shortens the prefix by 709 positions **and shifts the action tokens'
+   RoPE positions by ~709**. That position shift, never seen in training,
+   is the concrete mechanism behind variant 1's sequence-shape artifact
+   (actions change by 41%, vs 0.9% under the mean).
+2. The action expert does attend to the foresight: about 28% of its
+   attention goes to the generated future tokens (2% to the history).
+3. **Variant 2 (shuffle) was a weak intervention**: a wrong episode's
+   foresight changes the future tokens' keys/values by only 1–3%. Its
+   "no effect" result therefore says little by itself. The mean
+   condition changes them far more (future values by 38%, history values
+   by 19%) and still moves the actions by under 1% and success by −0.3 pp
+   (see "Mean-foresight control"). The content-blindness conclusion rests
+   on the mean condition, not on the shuffle.
+4. Net: F1's action expert attends to the foresight positions but its
+   output is nearly invariant to their content — the foresight block acts
+   as a structural part of the input (its presence fixes the sequence
+   layout and positions), not as an information channel the action
+   expert reads.
 
 ## Not yet done
 
