@@ -1,7 +1,8 @@
 # Experiment 1 — Ablation of the world-model signal (F1-VLA)
 
 **Status: done — both variants, real closed-loop; paired rerun 2026-10-28
-confirms both numbers (see "Paired rerun" below).** (Offline probes also ran
+confirms both numbers, and a mean-foresight control shows variant 1's cost
+is a sequence-shape artifact (see "Mean-foresight control" below).** (Offline probes also ran
 early on; retired to `OFFLINE_PROBE_BACKLOG.md` — no held-out split, not a
 citable result, see below.)
 
@@ -232,8 +233,44 @@ the table above) — the same class of problem the mimic-video sanity check
 found for its zero-ablation. So the −13.9 pp can mean "the action expert
 needs *some* real foresight" or "it breaks on an unseen sequence shape".
 The control that would separate them is an on-distribution substitute that
-keeps the shape but carries no episode content (e.g. the mean foresight KV
-over many episodes), analogous to mimic-video's mean-ablation. Not run yet.
+keeps the shape but carries no episode content, analogous to mimic-video's
+mean-ablation — run below.
+
+## Mean-foresight control (2026-10-28)
+
+**What it does** (`f1_vla_policy_meankv.py`, `main_inference_meankv.py`;
+`modeling_f1.py` untouched). The foresight is generated as usual and fills
+the shared KV cache `[und tokens | gen tokens]`. Before the action expert's
+first denoising step, the gen slice of every layer's key/value states is
+overwritten with its per-task mean, so the action expert reads the real
+current observation plus a foresight block with the normal length,
+positions, masks and value range but no episode-specific content
+(mean-ablation, Heimersheim & Nanda 2024). The means were collected in a
+separate `meancollect` run (seed 0, 24 episodes per task, 360–720 chunks per
+task); that run must behave exactly like the baseline, and it does: 96/96
+episode outcomes identical to baseline seed 0. The und length is asserted
+constant, so averaged keys share RoPE positions.
+
+| comparison | successes of 288 | paired difference [95% CI] | discordant pairs | McNemar p |
+|---|---|---|---|---|
+| mean vs baseline | 139 vs 140 | −0.3 pp [−4.5, +3.8] | 20 vs 21 | 1.00 |
+| mean vs zero (removed) | 139 vs 100 | +13.5 pp [+6.9, +19.8] | 68 vs 29 | 0.0001 |
+
+Per task (baseline / zero / mean, of 72): Carrot 25 / 15 / 23, Eggplant
+50 / 45 / 54, Spoon 36 / 30 / 34, Stack 29 / 10 / 28.
+
+**What this settles.** The −13.9 pp of variant 1 comes from the unseen
+sequence shape, not from losing foresight information: as long as the
+foresight slot holds something of the right form — the task average or a
+wrong episode's foresight (variant 2, whose pool spans all tasks) — success
+does not change measurably. F1-VLA's action expert does not use the
+content of its foresight at inference, within about ±4–6 pp. This revises
+the earlier reading "F1 needs *some* real foresight": it needs the slot
+filled, not informative.
+
+**Not yet done:** internal diagnostics for F1 analogous to mimic-video's
+(attention mass the action expert puts on gen positions, activation
+statistics, action validity under each condition).
 
 ## Not yet done
 
