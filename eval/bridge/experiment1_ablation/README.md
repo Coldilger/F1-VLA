@@ -1,6 +1,7 @@
 # Experiment 1 — Ablation of the world-model signal (F1-VLA)
 
-**Status: done — both variants, real closed-loop.** (Offline probes also ran
+**Status: done — both variants, real closed-loop; paired rerun 2026-10-28
+confirms both numbers (see "Paired rerun" below).** (Offline probes also ran
 early on; retired to `OFFLINE_PROBE_BACKLOG.md` — no held-out split, not a
 citable result, see below.)
 
@@ -194,6 +195,45 @@ mechanistic story: the world-model slot's real trained job may be closer to
 to condition on" than "tell the action expert what happens next" — closer
 to a representation/regularization role than a genuine forecasting role,
 even though removing it still measurably hurts.
+
+## Paired rerun at the thesis protocol (2026-10-28)
+
+The advisor asked whether small gaps such as 48.6% (baseline) vs 50.0%
+(shuffled) mean anything without paired statistics. The scratch purge had
+also deleted the per-episode outcomes behind every number above, so all
+three conditions were rerun with one script
+(`closed_loop/closed_loop.slurm`, save tag `exp1_<condition>_seed<N>`) on
+the same 4 tasks × 3 seeds × 24 episodes, and compared episode by episode
+with `../paired_stats.py` (pairs = task, seed, episode; Wilson CIs,
+task-stratified paired bootstrap, exact McNemar).
+
+The rerun reproduces the August totals exactly: baseline 140/288 = 48.6%,
+zero 100/288 = 34.7%, shuffled 144/288 = 50.0%.
+
+| comparison | successes | paired difference [95% CI] | discordant pairs | McNemar p |
+|---|---|---|---|---|
+| zero vs baseline | 100 vs 140 of 288 | −13.9 pp [−20.1, −7.3] | 29 vs 69 | 0.0001 |
+| shuffled vs baseline | 144 vs 140 of 288 | +1.4 pp [−3.1, +5.9] | 24 vs 20 | 0.65 |
+| shuffled vs zero | 144 vs 100 of 288 | +15.3 pp [+8.7, +21.5] | 72 vs 28 | <0.0001 |
+
+Per task (baseline / zero / shuffled, of 72): Carrot 25 / 15 / 26, Eggplant
+50 / 45 / 51, Spoon 36 / 30 / 36, Stack 29 / 10 / 31.
+
+**What this settles.** Removing the foresight tokens costs a real ~14 pp;
+replacing the foresight with a wrong episode's costs nothing measurable —
+the interval rules out any effect larger than about ±6 pp, and only 44 of
+288 paired episodes change outcome at all. So the "48.6% vs 50.0%" gap is
+noise, and the content-blindness reading of variant 2 now has a stated
+bound.
+
+**What it does not settle.** Variant 1 removes the tokens, which gives the
+action expert a sequence shape it never saw in training (the confound in
+the table above) — the same class of problem the mimic-video sanity check
+found for its zero-ablation. So the −13.9 pp can mean "the action expert
+needs *some* real foresight" or "it breaks on an unseen sequence shape".
+The control that would separate them is an on-distribution substitute that
+keeps the shape but carries no episode content (e.g. the mean foresight KV
+over many episodes), analogous to mimic-video's mean-ablation. Not run yet.
 
 ## Not yet done
 
