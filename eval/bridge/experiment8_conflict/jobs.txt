@@ -1,0 +1,4 @@
+conflictprobe StackGreenCubeOnYellowCubeBakedTexInScene-v0 seed0 767114
+conflictprobe PutCarrotOnPlateInScene-v0 seed0 767115
+conflictprobe PutSpoonOnTableClothInScene-v0 seed0 767116
+conflictprobe PutEggplantInBasketScene-v0 seed0 767117
