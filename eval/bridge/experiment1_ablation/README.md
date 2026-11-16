@@ -278,17 +278,30 @@ shared KV cache, the prefix pad mask and the state are captured at the
 action expert's first denoising step, and the chunk is re-denoised from the
 same start noise under real / shuffle (Exp1 variant 2) / mean
 (mean-foresight control) / removed (Exp1 variant 1) foresight. The gen block
-is split into the encoded history and the generated future tokens (the VAR
-scale maps appended after the first scale). 1800 replans.
+(709 positions) is split into sos + the encoded history frames (680
+positions) and the forecast positions (29: the inputs of the generated
+scales 2–4). 1800 replans.
+
+**Corrected 2026-11-16.** The first version of this table split the gen
+block at 30 + 679 (it summed over all `patch_nums` instead of the first
+`num_resolutions`), so its "history" and "future" rows were mislabelled:
+the "28% of attention on the future tokens" was attention on the history
+frames, and the "1–3% change under shuffle" was diluted over 650 unchanged
+history positions. The split is now 680 + 29, confirmed from data in
+`../experiment8_conflict` (two forecast sampling seeds never differ before
+position 680 of the gen block). The probe was rerun with the same seeds
+(`closed_loop/jobs_internals_v2.txt`); shapes, masks and all action numbers
+reproduce exactly, only the history / forecast rows changed. The old
+summary is kept as `internals/summary_split30_679.md`.
 
 | check | real | shuffle | mean | removed |
 |---|---|---|---|---|
 | prefix length (und + gen) | 1013 (304 + 709) | 1013 | 1013 | 304 (304 + 0) |
 | gen positions the action tokens may attend to | 709 of 709 | 709 | 709 | 0 |
 | first RoPE position id of the action tokens | 971–975 | same | same | 262–266 |
-| attention mass of action queries: und / history / future / own | 0.49 / 0.02 / 0.28 / 0.21 | same | 0.49 / 0.02 / 0.27 / 0.21 | 0.76 / 0 / 0 / 0.24 |
-| gen block change vs real, keys / values: history | — | 0 / 0 | 0.06 / 0.19 | — |
-| … future | — | 0.011 / 0.027 | 0.14 / 0.38 | — |
+| attention mass of action queries: und / history / forecast / own | 0.49 / 0.28 / 0.016 / 0.21 | same | 0.49 / 0.28 / 0.016 / 0.21 | 0.76 / 0 / 0 / 0.24 |
+| gen block change vs real, keys / values: history (680 positions) | — | 0 / 0 | 0.14 / 0.38 | — |
+| … forecast (29 positions) | — | 0.06 / 0.15 | 0.10 / 0.27 | — |
 | action change vs real (relative L2) | 0 | 0.003 | 0.009 | 0.41 |
 | NaN in actions | 0 | 0 | 0 | 0 |
 
@@ -304,20 +317,25 @@ off in the model's own pad mask changes it by exactly 0.
    RoPE positions by ~709**. That position shift, never seen in training,
    is the concrete mechanism behind variant 1's sequence-shape artifact
    (actions change by 41%, vs 0.9% under the mean).
-2. The action expert does attend to the foresight: about 28% of its
-   attention goes to the generated future tokens (2% to the history).
-3. **Variant 2 (shuffle) was a weak intervention**: a wrong episode's
-   foresight changes the future tokens' keys/values by only 1–3%. Its
-   "no effect" result therefore says little by itself. The mean
-   condition changes them far more (future values by 38%, history values
-   by 19%) and still moves the actions by under 1% and success by −0.3 pp
-   (see "Mean-foresight control"). The content-blindness conclusion rests
-   on the mean condition, not on the shuffle.
-4. Net: F1's action expert attends to the foresight positions but its
-   output is nearly invariant to their content — the foresight block acts
-   as a structural part of the input (its presence fixes the sequence
-   layout and positions), not as an information channel the action
-   expert reads.
+2. The action expert puts little attention on the forecast itself: 1.6%
+   on the 29 forecast positions (they are 2.8% of the positions it can
+   attend to), against 28% on the 680 history-frame positions of the gen
+   block and 49% on the understanding block.
+3. **The two replacements differ in what they touch.** Variant 2
+   (shuffle) changes only the forecast positions — keys by 6%, values by
+   15%, history untouched — about twice what re-sampling the forecast
+   under the same inputs does (7%, Experiment 8). The mean condition
+   replaces the whole gen block: history values change by 38%, forecast
+   values by 27%. Both move the actions by under 1% (0.3% and 0.9%) and
+   leave closed-loop success unchanged (+1.4 pp and −0.3 pp).
+4. Net: F1's action expert barely attends to the forecast positions, and
+   its output is nearly invariant to the content of the whole gen block —
+   forecast and encoded history frames alike — under these replacements.
+   The gen block acts as a structural part of the input (its presence
+   fixes the sequence layout and positions), not as an information channel
+   the action expert reads. Note that "removing the foresight" (variant 1)
+   and the mean control act on the whole gen block, i.e. also on the
+   encoded history frames, not only on the 29 forecast positions.
 
 ## Not yet done
 
