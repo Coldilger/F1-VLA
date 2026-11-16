@@ -136,7 +136,7 @@ class F1VLAConflictInference(F1VLAInference):
         self.policy.reset()  # empty action queue so the call really runs
         self._arm, self._tokens = True, []
         rng = torch.Generator(device=self.device).manual_seed(wm_seed)
-        self.policy.select_action_with_world_model(b, rng=rng, noise=noise.clone())
+        self._last_actions = self.policy.select_action_with_world_model(b, rng=rng, noise=noise.clone())
         n_scales = m.num_resolutions
         sizes = [p * p for p in m.patch_nums[:n_scales]]
         toks = self._tokens[-n_scales:]
@@ -245,3 +245,63 @@ class F1VLAConflictInference(F1VLAInference):
 
     def close(self):
         self._flush()
+
+
+class F1VLAConflictClosedLoop(F1VLAConflictInference):
+    """Step 2: the robot is driven by a conflict cell. At every replanning
+    decision the understanding block comes from a run under instruction
+    `und` and the generation block from a run under instruction `gen`
+    ("A" = the scene's own instruction, "B" = INSTRUCTIONS[task][alt]); both
+    runs share the forecast sampling seed and the action start noise.
+
+      und=A gen=A   baseline through this decode path (control)
+      und=B gen=B   normal policy under B
+      und=A gen=B   conflict: forecast from B
+      und=B gen=A   conflict: forecast from A
+    """
+
+    def __init__(self, *args, und: str, gen: str, alt: str = "mirror", **kwargs):
+        super().__init__(*args, **kwargs)
+        assert und in "AB" and gen in "AB"
+        self._und, self._gen = und, gen
+        self._text_b = dict(self._alts)[alt]
+        seed = kwargs.get("seed") or 0
+        self._seed_gen = torch.Generator().manual_seed(seed)
+        self._noise_gen = torch.Generator(device=self.device).manual_seed(1234 + seed)
+        self._check_max = 0.0
+
+    @torch.no_grad()
+    def _predict_new_chunk(self, image, task_description):
+        batch = self._batch(image, task_description)
+        m = self.policy.model
+        noise = torch.randn((1, m.config.chunk_size, m.config.max_action_dim), generator=self._noise_gen, device=self.device)
+        wm_seed = int(torch.randint(0, 2**31 - 1, (1,), generator=self._seed_gen))
+        text = {"A": task_description, "B": self._text_b}
+        cap_u, _ = self._run(batch, text[self._und], wm_seed, noise)
+        # sanity: our re-decoding of the unmixed cache must reproduce the
+        # policy's own output for the same seed and noise
+        own = self._last_actions[0, :, :7].float().cpu().numpy()
+        redo = self._decode(cap_u["state"], cap_u["pad"], cap_u["kv"], noise)
+        self._check_max = max(self._check_max, float(np.abs(own - redo).max()))
+        if self._gen == self._und:
+            chunk = redo
+        else:
+            cap_g, _ = self._run(batch, text[self._gen], wm_seed, noise)
+            u = int(cap_u["und_len"])
+            assert int(cap_g["und_len"]) == u and cap_g["pad"].shape == cap_u["pad"].shape
+            chunk = self._decode(cap_u["state"], cap_u["pad"], self._mix(cap_u["kv"], cap_g["kv"], u), noise)
+        self.policy.reset()
+        return (torch.from_numpy(chunk) * self.action_std + self.action_mean).numpy()
+
+    def _report(self):
+        if self._episode >= 0:
+            print(f"[conflict-cl] episode {self._episode} und={self._und} gen={self._gen} "
+                  f"B={self._text_b!r} redecode_max_abs_diff={self._check_max:.2e}", flush=True)
+
+    def reset(self, task_description):
+        self._report()
+        super().reset(task_description)
+
+    def close(self):
+        self._report()
+        super().close()

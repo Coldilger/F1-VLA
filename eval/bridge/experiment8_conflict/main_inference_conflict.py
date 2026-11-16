@@ -1,7 +1,10 @@
 """Closed-loop eval entrypoint for the Experiment 8 instruction-foresight conflict probe
 (F1-VLA, see f1_conflict_inference.py). Mirrors ../../main_inference.py
-exactly except it instantiates F1VLAConflictInference; the robot drives a
-normal baseline rollout. CONFLICT_OUT and TASK come from the environment.
+exactly except it instantiates F1VLAConflictInference (probe: the robot
+drives a normal baseline rollout) or, with CONFLICT_MODE=cl,
+F1VLAConflictClosedLoop (the robot is driven by the cell CONFLICT_UND /
+CONFLICT_GEN, alternative instruction CONFLICT_ALT). CONFLICT_OUT and TASK
+come from the environment.
 """
 
 import argparse
@@ -17,7 +20,7 @@ from simpler_env.evaluation.argparse import get_args  # noqa: E402
 from simpler_env.evaluation.maniskill2_evaluator import maniskill2_evaluator  # noqa: E402
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from f1_conflict_inference import F1VLAConflictInference  # noqa: E402
+from f1_conflict_inference import F1VLAConflictClosedLoop, F1VLAConflictInference  # noqa: E402
 
 
 def parse_f1_args(argv):
@@ -38,7 +41,7 @@ if __name__ == "__main__":
 
     os.environ["DISPLAY"] = ""
 
-    model = F1VLAConflictInference(
+    common = dict(
         checkpoint_path=f1_args.f1_checkpoint_path,
         stats_path=f1_args.f1_stats_path,
         device=f1_args.f1_device,
@@ -47,6 +50,12 @@ if __name__ == "__main__":
         out_dir=os.environ["CONFLICT_OUT"],
         task=os.environ["TASK"],
     )
+    if os.environ.get("CONFLICT_MODE", "probe") == "cl":
+        # step 2: the robot is driven by the cell und=CONFLICT_UND, gen=CONFLICT_GEN
+        model = F1VLAConflictClosedLoop(und=os.environ["CONFLICT_UND"], gen=os.environ["CONFLICT_GEN"],
+                                        alt=os.environ.get("CONFLICT_ALT", "mirror"), **common)
+    else:
+        model = F1VLAConflictInference(**common)
     success_arr = maniskill2_evaluator(model, args)
     model.close()
     print(args)
