@@ -1,0 +1,4 @@
+internals PutCarrotOnPlateInScene-v0 0 767468
+internals PutSpoonOnTableClothInScene-v0 0 767469
+internals StackGreenCubeOnYellowCubeBakedTexInScene-v0 0 767470
+internals PutEggplantInBasketScene-v0 0 767471

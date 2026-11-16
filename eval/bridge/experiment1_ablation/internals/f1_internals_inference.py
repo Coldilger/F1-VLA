@@ -168,9 +168,15 @@ class F1VLAInternalsInference(F1VLAInference):
         m = self.policy.model
         u = int(real_cap["und_len"])
         n_layers = len(real_cap["kv"])
-        # gen block = [encoded history | future tokens]; the future tokens are
-        # the VAR scale maps appended for every scale after the first
-        self._cur_hist = int(real_cap["pad"].shape[1]) - u - (sum(p * p for p in m.patch_nums) - m.patch_nums[0] ** 2)
+        # gen block = [sos + history-frame tokens | forecast positions]; the
+        # forecast positions are the inputs of scales 2..num_resolutions (the
+        # model generates only the first num_resolutions scales of
+        # patch_nums). Fixed 2026-11-16: the earlier version summed over all
+        # patch_nums and put the split at 30 + 679 instead of 680 + 29
+        # (checked from data in experiment8_conflict: two sampling seeds never
+        # differ before the 29 forecast positions).
+        n_future = sum(p * p for p in m.patch_nums[:m.num_resolutions]) - m.patch_nums[0] ** 2
+        self._cur_hist = int(real_cap["pad"].shape[1]) - u - n_future
         assert self._cur_hist > 0, self._cur_hist
         shape = (1, m.config.chunk_size, m.config.max_action_dim)
         noise = torch.randn(shape, generator=self._diag_gen, device=self.device)
