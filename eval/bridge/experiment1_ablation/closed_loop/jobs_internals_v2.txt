@@ -1,4 +1,4 @@
-internals PutCarrotOnPlateInScene-v0 0 767468
-internals PutSpoonOnTableClothInScene-v0 0 767469
-internals StackGreenCubeOnYellowCubeBakedTexInScene-v0 0 767470
-internals PutEggplantInBasketScene-v0 0 767471
+internals(split 680+29, tag suffix _split680) PutCarrotOnPlateInScene-v0 0 767493
+internals(split 680+29, tag suffix _split680) PutSpoonOnTableClothInScene-v0 0 767494
+internals(split 680+29, tag suffix _split680) StackGreenCubeOnYellowCubeBakedTexInScene-v0 0 767495
+internals(split 680+29, tag suffix _split680) PutEggplantInBasketScene-v0 0 767496

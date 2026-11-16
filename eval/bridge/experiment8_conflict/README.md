@@ -55,8 +55,9 @@ Instructions B per task (`INSTRUCTIONS` in `f1_conflict_inference.py`):
 ## Steps 0–1: results (2026-11-16)
 
 1785 replanning decisions on states visited by a normal rollout under A
-(Carrot, Spoon: 15 per episode; Eggplant: 30). Stack has 23 of 24 episodes
-(the last episode's record was not written; cause not checked). Numbers are
+(Carrot, Spoon: 15 per episode; Eggplant: 30). Stack has 23 of 24 episodes:
+the evaluator skips episodes that already exist under the same save tag, so
+episode 0, produced earlier by the one-episode pilot run, was not repeated. Numbers are
 means over episodes with a 95% bootstrap interval over episodes.
 
 ### Layout check and noise floor (same instruction, two forecast sampling seeds)
@@ -135,14 +136,73 @@ data, so "BB" is the policy under an unusual instruction, not a validated
 robot moves under BB. One forecast seed pair, one action start noise per
 decision, policy seed 0.
 
-## Step 2: closed loop (submitted 2026-11-16, results pending)
+## Step 2: closed loop (2026-11-16)
 
 `F1VLAConflictClosedLoop` drives the robot with one cell at every
 replanning decision (two full policy calls for the mixed cells, same
-forecast seed and start noise). Cells: und=A/gen=A (control through the
-same decode path), B/B, A/B, B/A; B = mirror; 4 tasks × 24 episodes, seed
-0 (`jobs_cl.txt`). Outcome: SimplerEnv's `moved_correct_obj` /
-`moved_wrong_obj` flags and success, relative to the scene's task A.
-Sanity check built in: re-decoding the unmixed cache reproduces the
-policy's own action exactly (max abs difference 0 on the first episodes of
-job 767448).
+forecast seed and start noise in both). B = the mirrored instruction;
+4 cells × 4 tasks × 24 episodes, seed 0 (`jobs_cl.txt`, 16 jobs, all
+`EVAL_EXIT=0`; tables from `analyze_conflict_cl.py`). All outcomes are
+relative to the scene's own task A: "moved A's object" is SimplerEnv's
+`moved_correct_obj`, "moved the other object" is `moved_wrong_obj`.
+Built-in check: re-decoding the unmixed cache reproduced the policy's own
+action exactly in all 384 episodes (max abs difference 0).
+
+| understanding block | generation block | episodes | success (task A) | moved A's object | moved the other object | grasped A's object |
+|---|---|---|---|---|---|---|
+| A | A (control) | 96 | 41/96 | 75/96 | 1/96 | 67/96 |
+| A | B (conflict) | 96 | 42/96 | 73/96 | 1/96 | 68/96 |
+| B | A (conflict) | 96 | 0/96 | 6/96 | 40/96 | 1/96 |
+| B | B | 96 | 0/96 | 6/96 | 40/96 | 2/96 |
+
+Per task: success / moved A's object / moved the other object, of 24.
+
+| understanding | generation | Carrot | Eggplant | Spoon | Stack |
+|---|---|---|---|---|---|
+| A | A | 6 / 17 / 0 | 16 / 23 / 0 | 12 / 17 / 1 | 7 / 18 / 0 |
+| A | B | 5 / 19 / 0 | 17 / 24 / 0 | 11 / 13 / 1 | 9 / 17 / 0 |
+| B | A | 0 / 3 / 2 | 0 / 2 / 0 | 0 / 0 / 19 | 0 / 1 / 19 |
+| B | B | 0 / 2 / 2 | 0 / 3 / 0 | 0 / 1 / 19 | 0 / 0 / 19 |
+
+Paired by episode (`../paired_stats.py`):
+
+| comparison | what it tests | base | cond | diff [95% CI] | McNemar p | base only / cond only |
+|---|---|---|---|---|---|---|
+| und A/gen A → und A/gen B | forecast from B under instruction A | 41/96 | 42/96 | +1.0 pp [−7.3, +9.4] | 1.00 | 8 / 9 |
+| und B/gen B → und B/gen A | forecast from A under instruction B | 0/96 | 0/96 | 0.0 pp | 1.00 | 0 / 0 |
+| und A/gen A → und B/gen B | instruction changed everywhere | 41/96 | 0/96 | −42.7 pp [−52.1, −33.3] | <0.0001 | 41 / 0 |
+
+1. **The mirrored instruction does redirect the robot.** Under B the robot
+   moves the other object in 19/24 episodes on Spoon and 19/24 on Stack
+   (under A: 1/24 and 0/24) and A's object in 0–1. So B is a real
+   competing goal there, not just a broken instruction. On Carrot and
+   Eggplant the other object is the plate / the basket, which the robot
+   almost never moves (2/24, 0/24); those two tasks only show that A is no
+   longer carried out.
+2. **The robot follows the instruction in the understanding block; the
+   forecast's instruction does not redirect it.** With instruction A and
+   the generation block from B, the robot still moves A's object (73/96 vs
+   75/96), almost never the other one (1/96 vs 1/96), and succeeds as often
+   (+1.0 pp [−7.3, +9.4]). With instruction B and the generation block
+   from A, it still goes for the other object (40/96 vs 40/96; Spoon and
+   Stack 19/24 in both) and never completes A.
+3. **Episodes do change, without a direction.** Between und A/gen A and
+   und A/gen B, 17 of 96 episodes change outcome (8 lost, 9 gained): the
+   swap perturbs the rollout about as a different random draw would, but
+   does not move it towards B.
+
+**Conclusion.** In F1-VLA the instruction reaches the action through the
+understanding block. The generation block — history and forecast — produced
+under a competing instruction does not carry that instruction to the
+action, at single decisions or over whole episodes. This is the same
+picture as Experiment 1 (the forecast's content is not used at inference),
+now with a forecast that is informative about a *different goal* rather
+than averaged or taken from another episode.
+
+**Limits.** One alternative instruction per task (mirror), one seed, 24
+episodes per task. The control cell (41/96 = 42.7%) is lower than the
+baseline of Experiment 1 (140/288 = 48.6%); it uses a different sampling
+scheme (a fresh forecast seed per decision drawn from a seeded generator)
+and the difference is within what 96 episodes can distinguish. The
+generation block was swapped as a whole; "forecast positions only" was
+tested at single decisions (ABf) but not in closed loop.

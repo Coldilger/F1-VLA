@@ -13,7 +13,8 @@
 # thesis protocol 4.4). Rerun 2026-10 after the scratch purge lost the
 # per-episode results. Required env vars: TASK, SEED, CONDITION
 # (baseline | zero | shuffle | meancollect | mean | internals). Save tag:
-# exp1_${CONDITION}_seed${SEED}.
+# exp1_${CONDITION}_seed${SEED}${TAG_SUFFIX}. The evaluator skips episodes that
+# already exist under the same save tag, so a rerun needs a new TAG_SUFFIX.
 
 set -u
 : "${TASK:?set TASK}"
@@ -79,7 +80,7 @@ esac
   --rgb-overlay-path "$OVERLAY" \
   --robot-init-x $INIT_X $INIT_X 1 --robot-init-y $INIT_Y $INIT_Y 1 \
   --obj-variation-mode episode --obj-episode-range 0 24 \
-  --additional-env-save-tags "exp1_${CONDITION}_seed${SEED}" \
+  --additional-env-save-tags "exp1_${CONDITION}_seed${SEED}${TAG_SUFFIX:-}" \
   --robot-init-rot-quat-center 0 0 0 1 --robot-init-rot-rpy-range 0 0 1 0 0 1 0 0 1 \
   --vam-experiment-name unused --vam-video-model-path unused --vam-action-model-path unused \
   --vam-dataset-statistics-path unused --vam-img-horizon 0 --vam-lowdim-horizon 0 \
