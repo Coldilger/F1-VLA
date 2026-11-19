@@ -5,7 +5,7 @@
 # to jobs.txt.
 cd /home/3295540/F1-VLA/eval/bridge/experiment9_scales
 TASKS="PutCarrotOnPlateInScene-v0 PutSpoonOnTableClothInScene-v0 StackGreenCubeOnYellowCubeBakedTexInScene-v0 PutEggplantInBasketScene-v0"
-LIMIT=28
+LIMIT=25  # leaves room for the self-chaining training job (Exp 11) to resubmit itself
 grid=()
 for SEED in 0 1 2; do
   for C in "1 1" "6 1" "2 1" "1 0" "6 0" "2 0"; do
