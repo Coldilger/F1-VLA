@@ -6,6 +6,7 @@
 #SBATCH --mem=128G
 #SBATCH --time=06:00:00
 #SBATCH --signal=B:TERM@120
+#SBATCH --exclude=gnode07
 #SBATCH --output=/home/3295540/F1-VLA/slurm/logs/full-nogenloss-%j.out
 
 # Experiment 11 (advisor's point 5): Bridge finetune with forecasting loss

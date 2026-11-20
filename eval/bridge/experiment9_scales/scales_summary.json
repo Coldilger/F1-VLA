@@ -1,0 +1,282 @@
+[
+ {
+  "scales": 1,
+  "pos_match": 0,
+  "forecast_positions": 0,
+  "action_position_shift": -29,
+  "n_decisions": 5400,
+  "gpus": [
+   "NVIDIA H100 NVL"
+  ],
+  "latency_ms_median": 172.99802900015493,
+  "latency_ms_p95": 175.6237562847673,
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 128,
+  "cond_wilson": [
+   0.3881605344963559,
+   0.5021909438398375
+  ],
+  "diff": -0.041666666666666685,
+  "diff_ci95": [
+   -0.10069444444444442,
+   0.017361111111111105
+  ],
+  "discordant_base_only": 45,
+  "discordant_cond_only": 33,
+  "mcnemar_p": 0.21268281985080578,
+  "only_in_one": 0,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 25,
+   "PutEggplantInBasketScene-v0": 45,
+   "PutSpoonOnTableClothInScene-v0": 33,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 25
+  },
+  "per_task_n": {
+   "PutCarrotOnPlateInScene-v0": 72,
+   "PutEggplantInBasketScene-v0": 72,
+   "PutSpoonOnTableClothInScene-v0": 72,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 72
+  }
+ },
+ {
+  "scales": 1,
+  "pos_match": 1,
+  "forecast_positions": 0,
+  "action_position_shift": 0,
+  "n_decisions": 5400,
+  "gpus": [
+   "NVIDIA H100 NVL"
+  ],
+  "latency_ms_median": 172.596506003174,
+  "latency_ms_p95": 174.41906634921907,
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 143,
+  "cond_wilson": [
+   0.43920912503904225,
+   0.5539378423569699
+  ],
+  "diff": 0.010416666666666685,
+  "diff_ci95": [
+   -0.038194444444444475,
+   0.05902777777777779
+  ],
+  "discordant_base_only": 25,
+  "discordant_cond_only": 28,
+  "mcnemar_p": 0.7838463022094988,
+  "only_in_one": 0,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 28,
+   "PutEggplantInBasketScene-v0": 52,
+   "PutSpoonOnTableClothInScene-v0": 34,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 29
+  },
+  "per_task_n": {
+   "PutCarrotOnPlateInScene-v0": 72,
+   "PutEggplantInBasketScene-v0": 72,
+   "PutSpoonOnTableClothInScene-v0": 72,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 72
+  }
+ },
+ {
+  "scales": 2,
+  "pos_match": 0,
+  "forecast_positions": 4,
+  "action_position_shift": -25,
+  "n_decisions": 5040,
+  "gpus": [
+   "NVIDIA H100 NVL"
+  ],
+  "latency_ms_median": 185.73536999247153,
+  "latency_ms_p95": 188.2564172046841,
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 137,
+  "cond_wilson": [
+   0.4187155877792952,
+   0.5333131839927895
+  ],
+  "diff": -0.010416666666666685,
+  "diff_ci95": [
+   -0.06597222222222221,
+   0.045138888888888895
+  ],
+  "discordant_base_only": 36,
+  "discordant_cond_only": 33,
+  "mcnemar_p": 0.8099490529189247,
+  "only_in_one": 0,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 23,
+   "PutEggplantInBasketScene-v0": 49,
+   "PutSpoonOnTableClothInScene-v0": 37,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 28
+  },
+  "per_task_n": {
+   "PutCarrotOnPlateInScene-v0": 72,
+   "PutEggplantInBasketScene-v0": 72,
+   "PutSpoonOnTableClothInScene-v0": 72,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 72
+  }
+ },
+ {
+  "scales": 2,
+  "pos_match": 1,
+  "forecast_positions": 4,
+  "action_position_shift": 0,
+  "n_decisions": 5400,
+  "gpus": [
+   "NVIDIA H100 NVL"
+  ],
+  "latency_ms_median": 185.45486299262848,
+  "latency_ms_p95": 188.43551639438374,
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 136,
+  "cond_wilson": [
+   0.4153095745390108,
+   0.5298661646290859
+  ],
+  "diff": -0.013888888888888895,
+  "diff_ci95": [
+   -0.05902777777777779,
+   0.03125
+  ],
+  "discordant_base_only": 24,
+  "discordant_cond_only": 20,
+  "mcnemar_p": 0.651587827208914,
+  "only_in_one": 0,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 25,
+   "PutEggplantInBasketScene-v0": 45,
+   "PutSpoonOnTableClothInScene-v0": 35,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 31
+  },
+  "per_task_n": {
+   "PutCarrotOnPlateInScene-v0": 72,
+   "PutEggplantInBasketScene-v0": 72,
+   "PutSpoonOnTableClothInScene-v0": 72,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 72
+  }
+ },
+ {
+  "scales": 4,
+  "pos_match": 0,
+  "forecast_positions": 29,
+  "action_position_shift": 0,
+  "n_decisions": 1800,
+  "gpus": [
+   "NVIDIA H100 NVL"
+  ],
+  "latency_ms_median": 213.2099019945599,
+  "latency_ms_p95": 216.48808962490875,
+  "n": 96,
+  "base_successes": 49,
+  "cond_successes": 49,
+  "cond_wilson": [
+   0.41195862420919654,
+   0.6080731060515364
+  ],
+  "diff": 0.0,
+  "diff_ci95": [
+   0.0,
+   0.0
+  ],
+  "discordant_base_only": 0,
+  "discordant_cond_only": 0,
+  "mcnemar_p": 1.0,
+  "only_in_one": 192,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 10,
+   "PutEggplantInBasketScene-v0": 15,
+   "PutSpoonOnTableClothInScene-v0": 15,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 9
+  },
+  "per_task_n": {
+   "PutCarrotOnPlateInScene-v0": 24,
+   "PutEggplantInBasketScene-v0": 24,
+   "PutSpoonOnTableClothInScene-v0": 24,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 24
+  }
+ },
+ {
+  "scales": 6,
+  "pos_match": 0,
+  "forecast_positions": 90,
+  "action_position_shift": 61,
+  "n_decisions": 5400,
+  "gpus": [
+   "NVIDIA H100 NVL"
+  ],
+  "latency_ms_median": 237.80263699882198,
+  "latency_ms_p95": 241.46612800068397,
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 133,
+  "cond_wilson": [
+   0.40510800429202665,
+   0.5195086370641064
+  ],
+  "diff": -0.024305555555555525,
+  "diff_ci95": [
+   -0.08333333333333337,
+   0.03472222222222221
+  ],
+  "discordant_base_only": 43,
+  "discordant_cond_only": 36,
+  "mcnemar_p": 0.49989687686032663,
+  "only_in_one": 0,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 21,
+   "PutEggplantInBasketScene-v0": 53,
+   "PutSpoonOnTableClothInScene-v0": 39,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 20
+  },
+  "per_task_n": {
+   "PutCarrotOnPlateInScene-v0": 72,
+   "PutEggplantInBasketScene-v0": 72,
+   "PutSpoonOnTableClothInScene-v0": 72,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 72
+  }
+ },
+ {
+  "scales": 6,
+  "pos_match": 1,
+  "forecast_positions": 90,
+  "action_position_shift": 0,
+  "n_decisions": 5400,
+  "gpus": [
+   "NVIDIA H100 NVL"
+  ],
+  "latency_ms_median": 238.58697499963455,
+  "latency_ms_p95": 244.5131346488779,
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 143,
+  "cond_wilson": [
+   0.43920912503904225,
+   0.5539378423569699
+  ],
+  "diff": 0.010416666666666685,
+  "diff_ci95": [
+   -0.03472222222222221,
+   0.055555555555555525
+  ],
+  "discordant_base_only": 21,
+  "discordant_cond_only": 24,
+  "mcnemar_p": 0.765991824244793,
+  "only_in_one": 0,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 26,
+   "PutEggplantInBasketScene-v0": 51,
+   "PutSpoonOnTableClothInScene-v0": 35,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 31
+  },
+  "per_task_n": {
+   "PutCarrotOnPlateInScene-v0": 72,
+   "PutEggplantInBasketScene-v0": 72,
+   "PutSpoonOnTableClothInScene-v0": 72,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 72
+  }
+ }
+]

@@ -57,4 +57,23 @@ waves on H100, resumes from the latest checkpoint; output
 
 ## Results
 
-Training in progress.
+Training in progress (step ~43,000 of 100,000 on 2026-11-20; the
+self-chain resumes from the last 10k checkpoint every 6 h wave). The first
+wave spent 1 h 45 min rebuilding the datasets cache (`LeRobotDataset built
+in 6282.2s`), because the weekly scratch touch changes the source files'
+modification times, which are part of the cache key.
+
+**Training curves so far (tensorboard, not a result).** Values at matched
+steps, deployed run from `outputs/bridge_finetune/trainer_state.json`:
+
+| step | action loss: deployed / weight 0 | forecast loss: deployed / weight 0 | forecast token accuracy: deployed / weight 0 |
+|---|---|---|---|
+| 200 | 0.185 / 0.185 | 4.45 / 4.50 | 0.27 / 0.27 |
+| ~15,000 | 0.117 (10k) / 0.116 | 4.05 (10k) / 7.40 | 0.23 (10k) / 0.044 |
+| ~40,000 | 0.123 (30k) / 0.140 | 3.88 (30k) / 8.07 | 0.30 (30k) / 0.029 |
+
+Without its loss the forecast branch stops forecasting within the first
+~15k steps (token accuracy 0.27 → 0.01–0.04, i.e. near chance for the
+top-k sampled tokens), while the action loss on the training data stays in
+the same range as in the deployed run. Whether closed-loop success follows
+is what the experiment measures once training ends.

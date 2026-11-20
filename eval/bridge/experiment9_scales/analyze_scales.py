@@ -77,6 +77,7 @@ def main() -> None:
             row.update({k: r[k] for k in ("n", "base_successes", "cond_successes", "cond_wilson", "diff", "diff_ci95",
                                           "discordant_base_only", "discordant_cond_only", "mcnemar_p", "only_in_one")})
             row["per_task"] = {t: v["cond"] for t, v in r["per_task"].items()}
+            row["per_task_n"] = {t: v["n"] for t, v in r["per_task"].items()}
         rows.append(row)
     (HERE / "scales_summary.json").write_text(json.dumps(rows, indent=1))
 
@@ -100,10 +101,11 @@ def main() -> None:
         bt = defaultdict(int)
         for (t, _, _), ok in base.items():
             bt[t] += ok
-        print("| 4 | deployed (Exp 1 baseline) | " + " | ".join(f"{bt[t]}/72" for t in tasks) + " |")
+        print("| 4 | deployed (Exp 1 baseline, seeds 0-2) | " + " | ".join(f"{bt[t]}/72" for t in tasks) + " |")
         for r in rows:
             if "per_task" in r:
-                print(f"| {r['scales']} | {'matched' if r['pos_match'] else 'shifted'} | " + " | ".join(f"{r['per_task'].get(t, '—')}/72" for t in tasks) + " |")
+                label = "deployed (rerun, seed 0)" if r["scales"] == 4 else ("matched" if r["pos_match"] else "shifted")
+                print(f"| {r['scales']} | {label} | " + " | ".join(f"{r['per_task'].get(t, '—')}/{r['per_task_n'].get(t, '—')}" for t in tasks) + " |")
 
 
 if __name__ == "__main__":
