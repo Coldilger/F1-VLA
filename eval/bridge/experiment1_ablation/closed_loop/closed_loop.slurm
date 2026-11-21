@@ -68,12 +68,20 @@ case "$TASK" in
     ;;
 esac
 
+# F1_CKPT (default: the deployed finetune) lets Experiment 11 evaluate the
+# finetune trained with forecasting-loss weight 0 under the same protocol.
+F1_CKPT="${F1_CKPT:-/home/3295540/F1-VLA/outputs/bridge_finetune}"
+if [ ! -f "$F1_CKPT/model.safetensors" ]; then
+  echo "no model.safetensors in $F1_CKPT (training not finished?)" >&2; exit 3
+fi
+echo "F1_CKPT=$F1_CKPT"
+
 /home/3295540/.conda/envs/f1_vla_eval/bin/python \
   "$ENTRY" \
-  --f1-checkpoint-path /home/3295540/F1-VLA/outputs/bridge_finetune \
-  --f1-stats-path /home/3295540/F1-VLA/outputs/bridge_finetune/bridge_orig_stats.json \
+  --f1-checkpoint-path "$F1_CKPT" \
+  --f1-stats-path "$F1_CKPT/bridge_orig_stats.json" \
   --f1-seed "$SEED" \
-  --ckpt-path /home/3295540/F1-VLA/outputs/bridge_finetune \
+  --ckpt-path "$F1_CKPT" \
   --robot "$ROBOT" --policy-setup widowx_bridge \
   --control-freq 5 --sim-freq 500 --max-episode-steps "$MAX_STEPS" \
   --env-name "$TASK" --scene-name "$SCENE" \

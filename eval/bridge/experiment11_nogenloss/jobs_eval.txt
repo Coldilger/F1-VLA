@@ -1,0 +1,12 @@
+782523 PutCarrotOnPlateInScene-v0 0
+782524 PutSpoonOnTableClothInScene-v0 0
+782525 StackGreenCubeOnYellowCubeBakedTexInScene-v0 0
+782526 PutEggplantInBasketScene-v0 0
+782527 PutCarrotOnPlateInScene-v0 1
+782528 PutSpoonOnTableClothInScene-v0 1
+782529 StackGreenCubeOnYellowCubeBakedTexInScene-v0 1
+782530 PutEggplantInBasketScene-v0 1
+782531 PutCarrotOnPlateInScene-v0 2
+782532 PutSpoonOnTableClothInScene-v0 2
+782534 StackGreenCubeOnYellowCubeBakedTexInScene-v0 2
+782536 PutEggplantInBasketScene-v0 2
