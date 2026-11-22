@@ -1,0 +1,98 @@
+{
+ "n": 288,
+ "deployed": 140,
+ "nogenloss": 139,
+ "nogenloss_wilson": [
+  0.42553583073584367,
+  0.5401990062442169
+ ],
+ "diff": -0.00347222222222221,
+ "diff_ci95": [
+  -0.06597222222222227,
+  0.05902777777777779
+ ],
+ "mcnemar_p": 1.0,
+ "lost_gained": [
+  44,
+  43
+ ],
+ "only_in_one": 0,
+ "per_task": {
+  "PutCarrotOnPlateInScene-v0": {
+   "deployed": 25,
+   "nogenloss": 32,
+   "n": 72,
+   "flags_deployed": {
+    "moved_correct_obj": 49,
+    "moved_wrong_obj": 3,
+    "is_src_obj_grasped": 44,
+    "consecutive_grasp": 40,
+    "src_on_target": 25
+   },
+   "flags_nogenloss": {
+    "moved_correct_obj": 59,
+    "moved_wrong_obj": 2,
+    "is_src_obj_grasped": 45,
+    "consecutive_grasp": 41,
+    "src_on_target": 32
+   }
+  },
+  "PutEggplantInBasketScene-v0": {
+   "deployed": 50,
+   "nogenloss": 49,
+   "n": 72,
+   "flags_deployed": {
+    "moved_correct_obj": 69,
+    "moved_wrong_obj": 0,
+    "is_src_obj_grasped": 69,
+    "consecutive_grasp": 67,
+    "src_on_target": 50
+   },
+   "flags_nogenloss": {
+    "moved_correct_obj": 65,
+    "moved_wrong_obj": 0,
+    "is_src_obj_grasped": 65,
+    "consecutive_grasp": 58,
+    "src_on_target": 49
+   }
+  },
+  "PutSpoonOnTableClothInScene-v0": {
+   "deployed": 36,
+   "nogenloss": 38,
+   "n": 72,
+   "flags_deployed": {
+    "moved_correct_obj": 56,
+    "moved_wrong_obj": 1,
+    "is_src_obj_grasped": 49,
+    "consecutive_grasp": 41,
+    "src_on_target": 36
+   },
+   "flags_nogenloss": {
+    "moved_correct_obj": 52,
+    "moved_wrong_obj": 2,
+    "is_src_obj_grasped": 51,
+    "consecutive_grasp": 43,
+    "src_on_target": 38
+   }
+  },
+  "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+   "deployed": 29,
+   "nogenloss": 20,
+   "n": 72,
+   "flags_deployed": {
+    "moved_correct_obj": 60,
+    "moved_wrong_obj": 1,
+    "is_src_obj_grasped": 60,
+    "consecutive_grasp": 57,
+    "src_on_target": 29
+   },
+   "flags_nogenloss": {
+    "moved_correct_obj": 57,
+    "moved_wrong_obj": 0,
+    "is_src_obj_grasped": 54,
+    "consecutive_grasp": 53,
+    "src_on_target": 20
+   }
+  }
+ }
+}

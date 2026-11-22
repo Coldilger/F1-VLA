@@ -55,25 +55,57 @@ as well, since GPU training is not bit-for-bit reproducible.
 waves on H100, resumes from the latest checkpoint; output
 `outputs/bridge_finetune_nogenloss`). Submitted 2026-11-19, job 776902.
 
-## Results
+## Results (2026-11-22)
 
-Training in progress (step ~43,000 of 100,000 on 2026-11-20; the
-self-chain resumes from the last 10k checkpoint every 6 h wave). The first
-wave spent 1 h 45 min rebuilding the datasets cache (`LeRobotDataset built
-in 6282.2s`), because the weekly scratch touch changes the source files'
-modification times, which are part of the cache key.
+Training finished at 100,000 steps (job 782037). Evaluation: 12 jobs
+782523–782536 (`jobs_eval.txt`), `CONDITION=baseline` of
+`../experiment1_ablation/closed_loop/closed_loop.slurm` with
+`F1_CKPT=outputs/bridge_finetune_nogenloss`, save tag
+`exp1_baseline_seed{0,1,2}_nogenloss`, all `EVAL_EXIT=0`; logs confirm the
+weight-0 checkpoint was loaded. `python analyze_exp11.py` (writes
+`exp11_summary.json`), paired by (task, seed, episode) with the Experiment 1
+baseline `exp1_baseline_seed{0,1,2}`.
 
-**Training curves so far (tensorboard, not a result).** Values at matched
-steps, deployed run from `outputs/bridge_finetune/trainer_state.json`:
+**Training metrics at the end (mean over steps 90k–100k, training data).**
 
-| step | action loss: deployed / weight 0 | forecast loss: deployed / weight 0 | forecast token accuracy: deployed / weight 0 |
+| | action loss | forecast loss | forecast token accuracy (mean / tail) |
 |---|---|---|---|
-| 200 | 0.185 / 0.185 | 4.45 / 4.50 | 0.27 / 0.27 |
-| ~15,000 | 0.117 (10k) / 0.116 | 4.05 (10k) / 7.40 | 0.23 (10k) / 0.044 |
-| ~40,000 | 0.123 (30k) / 0.140 | 3.88 (30k) / 8.07 | 0.30 (30k) / 0.029 |
+| deployed (weight 0.1) | 0.122 | 3.69 | 0.311 / 0.227 |
+| weight 0 | 0.122 | 8.65 | 0.017 / 0.004 |
 
-Without its loss the forecast branch stops forecasting within the first
-~15k steps (token accuracy 0.27 → 0.01–0.04, i.e. near chance for the
-top-k sampled tokens), while the action loss on the training data stays in
-the same range as in the deployed run. Whether closed-loop success follows
-is what the experiment measures once training ends.
+**Closed loop (288 paired episodes).**
+
+| run | success | diff vs deployed [95% CI] | McNemar p | lost / gained |
+|---|---|---|---|---|
+| deployed (weight 0.1) | 140/288 (48.6%) | — | — | — |
+| weight 0 | 139/288 (48.3%) | −0.3 pp [−6.6, +5.9] | 1.0 | 44 / 43 |
+
+| task (of 72) | deployed | weight 0 | grasped: deployed / weight 0 |
+|---|---|---|---|
+| Carrot | 25 | 32 | 44 / 45 |
+| Eggplant | 50 | 49 | 69 / 65 |
+| Spoon | 36 | 38 | 49 / 51 |
+| Stack | 29 | 20 | 60 / 54 |
+
+**What this shows.**
+1. Without its loss the forecast branch stops forecasting (token accuracy
+   0.31 → 0.02, near chance), yet the policy is as good as the deployed one:
+   same action loss on the training data and the same closed-loop success
+   (−0.3 pp, CI ±6 pp; 87 discordant episodes split 44 / 43). The per-task
+   differences go both ways (Carrot +7, Stack −9 of 72, i.e. about ±3 per
+   24-episode run); the deployed model's own runs with different policy
+   seeds differ by up to 7 of 24 on one task (Eggplant 14 vs 21, Stack
+   7 vs 13).
+2. So forecasting supervision **during finetuning** does not make F1-VLA's
+   Bridge policy better. Together with Experiments 1 and 8 (the deployed
+   policy barely reads the forecast at inference), the forecast branch is
+   not what the Bridge policy relies on, either at training or at test
+   time.
+3. **What it does not show.** Both runs start from `f1_vla_stage2`, which
+   learned to forecast in pretraining; a benefit of forecasting during
+   pretraining (the representations the action expert inherits) is not
+   tested. The deployed run was not repeated, so run-to-run training noise
+   is not measured; it would only matter if a difference had appeared.
+4. Comparisons (2) and (3) of the plan: forecast quality is given by the
+   training metrics above (evaluated rollouts not scored); the Experiment 1
+   interventions on the weight-0 model are not run yet.
