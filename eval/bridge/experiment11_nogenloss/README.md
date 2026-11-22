@@ -107,5 +107,20 @@ baseline `exp1_baseline_seed{0,1,2}`.
    tested. The deployed run was not repeated, so run-to-run training noise
    is not measured; it would only matter if a difference had appeared.
 4. Comparisons (2) and (3) of the plan: forecast quality is given by the
-   training metrics above (evaluated rollouts not scored); the Experiment 1
-   interventions on the weight-0 model are not run yet.
+   training metrics above (evaluated rollouts not scored); for (3) see
+   below.
+
+### Experiment 1 interventions on the weight-0 model (running, 2026-11-22)
+
+Does the weight-0 model still read its forecast positions, now that they
+hold no forecast? Same conditions and script as Experiment 1
+(`../experiment1_ablation/closed_loop/closed_loop.slurm`) with
+`F1_CKPT=outputs/bridge_finetune_nogenloss`, `TAG_SUFFIX=_nogenloss`, H100:
+`zero` (forecast removed) and `shuffle` (forecast from another decision),
+4 tasks × seeds 0–2; `meancollect` (seed 0) then `mean` (per-task mean
+forecast KV of this model, kept in `closed_loop/meankv_nogenloss/`, seeds
+0–2); `internals` (seed 0, records in
+`../experiment1_ablation/internals/records_nogenloss/`, so the deployed
+model's records are not overwritten). Job ids: `jobs_interventions.txt`
+(submitted by `~/slurm_util/feeder.sh`; the `mean` jobs are queued once the
+mean KV exists).

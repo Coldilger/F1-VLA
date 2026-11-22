@@ -30,14 +30,17 @@ case "$CONDITION" in
   meancollect|mean)
             ENTRY=/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/main_inference_meankv.py
             export MEANKV_MODE=$([ "$CONDITION" = meancollect ] && echo collect || echo mean)
-            mkdir -p /home/3295540/F1-VLA/eval/bridge/experiment1_ablation/closed_loop/meankv
-            export MEANKV_PATH=/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/closed_loop/meankv/${TASK}.pt ;;
+            # MEANKV_DIR: Experiment 11 keeps the weight-0 model's mean KV apart
+            MEANKV_DIR="${MEANKV_DIR:-/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/closed_loop/meankv}"
+            mkdir -p "$MEANKV_DIR"
+            export MEANKV_PATH=${MEANKV_DIR}/${TASK}.pt ;;
   # internal diagnostics (internals/f1_internals_inference.py): a normal
   # baseline rollout that also re-decodes every chunk under real / shuffle /
   # mean / removed foresight and records masks, attention, KV stats, actions
   internals)
             ENTRY=/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/internals/main_inference_internals.py
-            export INTERNALS_OUT=/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/internals/records/${TASK} ;;
+            # INTERNALS_DIR: Experiment 11 writes the weight-0 model's records apart
+            export INTERNALS_OUT=${INTERNALS_DIR:-/home/3295540/F1-VLA/eval/bridge/experiment1_ablation/internals/records}/${TASK} ;;
   *) echo "unknown CONDITION: $CONDITION" >&2; exit 2 ;;
 esac
 # RLIMIT_CPU (~600 CPU-seconds) kills sim evals mid-run without this
