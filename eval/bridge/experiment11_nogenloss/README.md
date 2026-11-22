@@ -110,7 +110,7 @@ baseline `exp1_baseline_seed{0,1,2}`.
    training metrics above (evaluated rollouts not scored); for (3) see
    below.
 
-### Experiment 1 interventions on the weight-0 model (2026-11-22, partly done)
+### Experiment 1 interventions on the weight-0 model (2026-11-22)
 
 Does the weight-0 model still read its forecast positions, now that they
 hold no forecast? Same conditions and script as Experiment 1
