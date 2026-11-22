@@ -125,7 +125,7 @@ model's records are not overwritten). Job ids: `jobs_interventions.txt`
 (submitted by `~/slurm_util/feeder.sh`; the `mean` jobs are queued once the
 mean KV exists).
 
-**Forecast removed (`zero`, complete).** `python analyze_interventions.py`
+**Forecast removed (`zero`) and taken from another decision (`shuffle`), complete.** `python analyze_interventions.py`
 (writes `interventions_summary.json`); each model's intervention paired
 with its own baseline, 288 episodes:
 
@@ -133,13 +133,15 @@ with its own baseline, 288 episodes:
 |---|---|---|---|---|---|
 | weight 0 (no forecasting loss) | 139 | 101 | −13.2 pp [−19.1, −7.3] | 4e-5 | 61 / 23 |
 | deployed (weight 0.1), Experiment 1 | 140 | 100 | −13.9 pp [−20.5, −7.6] | 7e-5 | 69 / 29 |
+| weight 0, `shuffle` | 139 | 138 | −0.3 pp [−4.9, +4.5] | 1 | 24 / 23 |
+| deployed, `shuffle` (Experiment 1) | 140 | 144 | +1.4 pp [−3.1, +5.9] | 0.65 | 20 / 24 |
 
 Removing the forecast positions hurts the weight-0 model as much as the
 deployed one, although in the weight-0 model these positions hold no
 forecast (token accuracy 0.02). So Experiment 1's `zero` drop does not
 measure the use of forecast *content*: the action expert depends on these
 positions being present and in their usual range, whatever they encode.
-`shuffle` and `mean` (which keep the positions in range) are still running
-for the weight-0 model (on 2026-11-22: `shuffle` 5 of 12 jobs done, `mean`
-queued); on the deployed model both are at zero effect (+1.4 pp, −0.3 pp).
+`shuffle` keeps the positions in range and has no effect on either model.
+`mean` is still running for the weight-0 model (on 2026-11-22: 78 of 288
+episodes); on the deployed model it has no effect (−0.3 pp).
 
