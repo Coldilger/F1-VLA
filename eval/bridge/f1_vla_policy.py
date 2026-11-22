@@ -52,6 +52,7 @@ SimplerEnv/ManiSkill2 environment is actually installed and runnable):
 from __future__ import annotations
 
 import json
+import os
 from collections import deque
 
 import numpy as np
@@ -65,6 +66,9 @@ from f1_vla.src.policies.f1_policy import F1_VLA
 from f1_vla.src.utils.image_tools import normalize_01_into_pm1
 
 MID_RESO = 1.125
+# SimplerEnv's tool frame vs Bridge's state frame: R_sim = R_data @ T_SIM
+# (SimplerEnv/simpler_env/utils/debug/widowx_test_dataset_inference_rollout_gt_traj_in_sim.py)
+T_SIM = np.array([[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [-1.0, 0.0, 0.0]])
 FINAL_RESO = 256
 
 
@@ -126,6 +130,22 @@ class F1VLAInference:
         # Set history_stride_steps > 1 to re-test the sparse variant.
         self.history_stride_steps = 1
         self._step_count = 0
+        # Experiment 12 (LDA-1B/eval/bridge/experiment12_audit) options, read from
+        # the environment so every entry point inherits them; defaults keep the
+        # behaviour every earlier result was measured with.
+        #   F1_STATE_FRAME=bridge: rotation state in Bridge's own convention,
+        #     R_data = R_sim @ T_SIM^T (SimplerEnv's replay script uses
+        #     R_sim = R_data @ T_SIM), instead of relative to the episode's first pose.
+        #   F1_HISTORY_SPACING=k>1: the history holds the frames at t-3k, t-2k,
+        #     t-k, t (clamped to the first frame), i.e. the training spacing for
+        #     k=3, at every decision -- not a frame pushed every k-th step, which
+        #     can leave the newest history frame up to k-1 steps old.
+        self.state_frame = os.environ.get("F1_STATE_FRAME", "episode_relative")
+        assert self.state_frame in ("episode_relative", "bridge"), self.state_frame
+        self.history_spacing = int(os.environ.get("F1_HISTORY_SPACING", "1"))
+        self._frame_list: list = []
+        if self.state_frame != "episode_relative" or self.history_spacing != 1:
+            print(f"[f1] state_frame={self.state_frame} history_spacing={self.history_spacing}", flush=True)
 
         self._history_transform = T.Compose(
             [
@@ -168,6 +188,7 @@ class F1VLAInference:
         self.action_buffer_idx = 0
         self._step_count = 0
         self._ref_rot = None
+        self._frame_list = []
 
     def _to_training_resolution(self, image: np.ndarray) -> Image.Image:
         """SimplerEnv renders 480x640 (4:3); bridge_orig training frames are
@@ -207,10 +228,13 @@ class F1VLAInference:
         # the reference frame, not the ordering. So express rotation relative to
         # the pose captured at episode reset, which reproduces the training
         # structure: ~zero at episode start, drifting as the arm moves.
-        if self._ref_rot is None:
-            self._ref_rot = rot
-        rel_rot = self._ref_rot.inv() * rot
-        rpy = rel_rot.as_euler("xyz").astype(np.float32)
+        if self.state_frame == "bridge":
+            rpy = (rot * Rotation.from_matrix(T_SIM.T)).as_euler("xyz").astype(np.float32)
+        else:
+            if self._ref_rot is None:
+                self._ref_rot = rot
+            rel_rot = self._ref_rot.inv() * rot
+            rpy = rel_rot.as_euler("xyz").astype(np.float32)
         state_raw = np.concatenate([pos, rpy, [0.0], [float(gripper_proprio)]]).astype(np.float32)
         state = torch.from_numpy(state_raw)
         state_norm = (state - self.state_mean) / self._state_std_safe
@@ -245,7 +269,14 @@ class F1VLAInference:
         # Push into the world-model history only every Nth env step, so the
         # window matches the 0.6s spacing / 1.8s span the model trained on.
         # (Always seed it on the very first step so it is never empty.)
-        if self._step_count % self.history_stride_steps == 0 or not self.image_history:
+        if self.history_spacing > 1:
+            self._frame_list.append(self._preprocess_history_image(image))
+            t = len(self._frame_list) - 1
+            self.image_history.clear()
+            for i in range(self.n_obs_img_steps):
+                self.image_history.append(
+                    self._frame_list[max(0, t - self.history_spacing * (self.n_obs_img_steps - 1 - i))])
+        elif self._step_count % self.history_stride_steps == 0 or not self.image_history:
             self.image_history.append(self._preprocess_history_image(image))
         self._step_count += 1
         self._current_state = self._build_state(ee_pose_proprio, gripper_proprio)

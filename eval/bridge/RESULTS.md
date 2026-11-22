@@ -492,5 +492,10 @@ Shared audit of the three models' Bridge data at training and evaluation:
 - the evaluation history is 4 consecutive frames (0.2 s apart), training
   used 0.6 s spacing (`f1_vla_policy.py` L116–127; chosen on one 24-episode
   run of an earlier checkpoint).
-Not yet tested in the closed loop: exact state conversion (`R_sim · Tᵀ`) and
-the training spacing on the 100k checkpoint.
+Closed-loop test running (2026-11-22): `f1_vla_policy.py` options
+`F1_STATE_FRAME=bridge` (exact state, `R_sim · Tᵀ`) and
+`F1_HISTORY_SPACING=3` (history at t−9, −6, −3, 0 as in training; defaults
+unchanged), each 4 tasks × seeds 0–2 on the 100k checkpoint via
+`experiment1_ablation/closed_loop/closed_loop.slurm` (`CONDITION=baseline`,
+`TAG_SUFFIX=_e12statebridge` / `_e12hist3`), paired with
+`exp1_baseline_seed{0,1,2}`. Job ids: `LDA-1B/eval/bridge/experiment12_audit/jobs.txt`.
