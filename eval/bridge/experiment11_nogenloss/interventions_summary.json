@@ -27,6 +27,20 @@
   "discordant_cond_only": 23,
   "only_in_one": 0
  },
+ "no forecast loss/mean": {
+  "n": 288,
+  "base_successes": 139,
+  "cond_successes": 141,
+  "diff": 0.00694444444444442,
+  "diff_ci95": [
+   -0.038194444444444475,
+   0.055555555555555525
+  ],
+  "mcnemar_p": 0.8854334972865132,
+  "discordant_base_only": 23,
+  "discordant_cond_only": 25,
+  "only_in_one": 0
+ },
  "deployed/zero": {
   "n": 288,
   "base_successes": 140,

@@ -125,7 +125,7 @@ model's records are not overwritten). Job ids: `jobs_interventions.txt`
 (submitted by `~/slurm_util/feeder.sh`; the `mean` jobs are queued once the
 mean KV exists).
 
-**Forecast removed (`zero`) and taken from another decision (`shuffle`), complete.** `python analyze_interventions.py`
+**All three interventions, complete (2026-11-22).** `python analyze_interventions.py`
 (writes `interventions_summary.json`); each model's intervention paired
 with its own baseline, 288 episodes:
 
@@ -135,13 +135,39 @@ with its own baseline, 288 episodes:
 | deployed (weight 0.1), Experiment 1 | 140 | 100 | −13.9 pp [−20.5, −7.6] | 7e-5 | 69 / 29 |
 | weight 0, `shuffle` | 139 | 138 | −0.3 pp [−4.9, +4.5] | 1 | 24 / 23 |
 | deployed, `shuffle` (Experiment 1) | 140 | 144 | +1.4 pp [−3.1, +5.9] | 0.65 | 20 / 24 |
+| weight 0, `mean` | 139 | 141 | +0.7 pp [−3.8, +5.6] | 0.89 | 23 / 25 |
+| deployed, `mean` (Experiment 1) | 140 | 139 | −0.3 pp [−4.9, +4.2] | 1 | 21 / 20 |
 
 Removing the forecast positions hurts the weight-0 model as much as the
 deployed one, although in the weight-0 model these positions hold no
 forecast (token accuracy 0.02). So Experiment 1's `zero` drop does not
 measure the use of forecast *content*: the action expert depends on these
 positions being present and in their usual range, whatever they encode.
-`shuffle` keeps the positions in range and has no effect on either model.
-`mean` is still running for the weight-0 model (on 2026-11-22: 78 of 288
-episodes); on the deployed model it has no effect (−0.3 pp).
+`shuffle` and `mean` keep the positions in range and have no effect on
+either model.
+
+**Internals (seed 0, 96 episodes, 1,800 decisions; same conditions applied
+to identical inputs at each decision).** `../experiment1_ablation/internals/
+analyze_internals.py records_nogenloss/` → `summary_nogenloss.md` there
+(deployed model: `summary.md`). Shapes and masks are identical in both
+models, and the mask test passes (a masked position has exactly zero
+effect).
+
+| | deployed | weight 0 |
+|---|---|---|
+| attention of the action queries on the 29 forecast positions | 0.016 | 0.009 |
+| attention on the 680 encoded history positions | 0.285 | 0.196 |
+| attention on the language/image (und) prefix | 0.487 | 0.575 |
+| action change with `shuffle` (relative L2) | 0.003 | 0.003 |
+| action change with `mean` | 0.009 | 0.088 |
+| action change with the generation block `removed` | 0.411 | 0.367 |
+| forecast-position values changed by `mean` (relative L2) | 0.27 | 0.88 |
+
+Without the forecasting loss the action expert still reads the generation
+block, though less (history 0.20 against 0.29 of its attention; forecast
+positions 0.009 against 0.016) and more from the und prefix. In the
+weight-0 model the per-task mean is far from each decision's own block
+(values 0.88 away against 0.27), and it moves the single-decision action
+by 9% (against 1%), yet closed-loop success does not change (+0.7 pp).
+
 
