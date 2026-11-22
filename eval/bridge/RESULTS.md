@@ -476,3 +476,21 @@ Same recipe as the deployed 100k finetune, `gen_out_loss_ratio` 0 instead of
 of training 0.31 → 0.02, action loss 0.122 in both runs. Closed loop, 3 seeds
 × 24 episodes × 4 tasks: **139/288 (48.3%) vs 140/288 (48.6%)**, −0.3 pp
 [−6.6, +5.9], McNemar p = 1.0. Details: `experiment11_nogenloss/README.md`.
+
+## Bridge pipeline audit (Experiment 12, 2026-11-22)
+
+Shared audit of the three models' Bridge data at training and evaluation:
+`LDA-1B/eval/bridge/experiment12_audit/README.md` (script
+`audit_pipelines.py`, 300 episodes). For F1-VLA:
+- actions are consistent: `action[0:3]` is the world-frame state difference
+  and `action[3:6]` the difference of Euler angles (exact), converted with
+  `euler2axangle` like SimplerEnv's own replay script;
+- the rotation **state** is approximate: SimplerEnv's tool frame is rotated
+  by a fixed `T = [[0,0,1],[0,1,0],[-1,0,0]]` relative to Bridge's
+  (`R_sim = R_data · T`), and `_build_state`'s episode-relative rotation
+  differs from the trained value by 28° (median; 90th percentile 82°);
+- the evaluation history is 4 consecutive frames (0.2 s apart), training
+  used 0.6 s spacing (`f1_vla_policy.py` L116–127; chosen on one 24-episode
+  run of an earlier checkpoint).
+Not yet tested in the closed loop: exact state conversion (`R_sim · Tᵀ`) and
+the training spacing on the 100k checkpoint.

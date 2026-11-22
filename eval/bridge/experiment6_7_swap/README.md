@@ -34,6 +34,7 @@ sampled tokens.
 | `bank:other_task` | same table, another task, same episode and decision index (Carrot → Spoon → Stack → Carrot; none for Eggplant, the only sink task) | 1 |
 | `bank:other_scene` | the other scene: table tasks ← Eggplant (sink), Eggplant ← Carrot | 1 |
 | `real:-4`, `real:0` | the real camera frame 4 steps ago / now, tokenised by F1's VAE | 6 |
+| `real:+1` | the real frame 1 step ahead: the next frame of the evaluation history, which is fed at consecutive steps (0.2 s) although training spaced it 0.6 s apart (Experiment 12) | 6 |
 | `real:+3` | the real frame 3 steps ahead: the horizon F1 was trained to forecast (+3 frames at 5 fps), i.e. a closed-loop oracle | 6 |
 | `real:+8`, `real:+16` | real frames further ahead (lookahead) | 6 |
 
