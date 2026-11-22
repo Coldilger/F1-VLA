@@ -1,0 +1,5 @@
+control 785471
+real:+3 785472
+own:+1 785473
+bank:other_scene 785482
+own:-1 785483
