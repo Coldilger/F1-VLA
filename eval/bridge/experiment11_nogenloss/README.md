@@ -110,7 +110,7 @@ baseline `exp1_baseline_seed{0,1,2}`.
    training metrics above (evaluated rollouts not scored); for (3) see
    below.
 
-### Experiment 1 interventions on the weight-0 model (running, 2026-11-22)
+### Experiment 1 interventions on the weight-0 model (2026-11-22, partly done)
 
 Does the weight-0 model still read its forecast positions, now that they
 hold no forecast? Same conditions and script as Experiment 1
@@ -124,3 +124,22 @@ forecast KV of this model, kept in `closed_loop/meankv_nogenloss/`, seeds
 model's records are not overwritten). Job ids: `jobs_interventions.txt`
 (submitted by `~/slurm_util/feeder.sh`; the `mean` jobs are queued once the
 mean KV exists).
+
+**Forecast removed (`zero`, complete).** `python analyze_interventions.py`
+(writes `interventions_summary.json`); each model's intervention paired
+with its own baseline, 288 episodes:
+
+| model | baseline | `zero` | diff [95% CI] | McNemar p | lost / gained |
+|---|---|---|---|---|---|
+| weight 0 (no forecasting loss) | 139 | 101 | −13.2 pp [−19.1, −7.3] | 4e-5 | 61 / 23 |
+| deployed (weight 0.1), Experiment 1 | 140 | 100 | −13.9 pp [−20.5, −7.6] | 7e-5 | 69 / 29 |
+
+Removing the forecast positions hurts the weight-0 model as much as the
+deployed one, although in the weight-0 model these positions hold no
+forecast (token accuracy 0.02). So Experiment 1's `zero` drop does not
+measure the use of forecast *content*: the action expert depends on these
+positions being present and in their usual range, whatever they encode.
+`shuffle` and `mean` (which keep the positions in range) are still running
+for the weight-0 model (on 2026-11-22: `shuffle` 5 of 12 jobs done, `mean`
+queued); on the deployed model both are at zero effect (+1.4 pp, −0.3 pp).
+
