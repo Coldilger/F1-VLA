@@ -468,3 +468,11 @@ failed at reduced concurrency after the initial burst). Worked around with
 `main_inference_skip_video.py` (monkey-patches `write_video` to a no-op; the
 videos aren't used anywhere in this analysis, only the printed success rate).
 All 12 final numbers above are from clean runs (video-writing or not).
+
+## Finetune without the forecasting loss (Experiment 11, 2026-11-22)
+
+Same recipe as the deployed 100k finetune, `gen_out_loss_ratio` 0 instead of
+0.1 (`outputs/bridge_finetune_nogenloss`). Forecast token accuracy at the end
+of training 0.31 → 0.02, action loss 0.122 in both runs. Closed loop, 3 seeds
+× 24 episodes × 4 tasks: **139/288 (48.3%) vs 140/288 (48.6%)**, −0.3 pp
+[−6.6, +5.9], McNemar p = 1.0. Details: `experiment11_nogenloss/README.md`.
