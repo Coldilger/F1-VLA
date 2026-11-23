@@ -76,7 +76,26 @@ the intervention), the replay check and timing.
 
 ## Status
 
-2026-11-22: code written; smoke runs (Carrot, episodes 0–1, seed 0:
-`control`, `real:+3`, `own:+1`, `bank:other_scene`, `own:-1`) submitted.
-Checks: `control` gives `d(donor, own) = 0`; `replay_max_diff` ≈ 0; cost
-of the lookahead per decision. Full runs follow the checks.
+**Smoke runs (2026-11-22/23, Carrot, episodes 0–1, seed 0, tag suffix
+`_smoke`, jobs in `jobs_smoke.txt`):** all five `EVAL_EXIT=0`.
+- `control`: `d(donor, own) = 0.0000`, i.e. the hook reproduces the normal
+  action exactly.
+- Lookahead (`real:+3`, `own:+1`): `replay_max_diff = 0` — the replayed
+  environment matches the main one exactly, so the simulated future is the
+  one the robot would meet.
+- Time per decision: 0.6–0.7 s without lookahead, 2.4–2.6 s with it.
+- Single-decision effect already visible: `d(donor, own)` 0.004–0.006
+  against the noise floor `d(own2, own)` 0.004–0.006 (another forecast
+  sample).
+
+**Full runs queued 2026-11-23:** 14 conditions (table above, with `real:+1`)
+× 4 tasks × seeds 0–2, 24 episodes each; `bank:other_task` has no Eggplant
+donor (165 jobs, labels `f1e67_*` in `~/slurm_util/queue_done.txt`, 3 h
+limit, alternating H200 / H100). Eggplant episodes have 30 decisions and its
+Carrot donor (`bank:other_scene`) only 15; later decisions use the donor's
+last one.
+
+**Comparison.** The executed action differs from Experiment 1's baseline
+wrapper in RNG use (a second forecast is sampled each decision), so each
+condition is paired with `control` of the same task, seed and episode;
+`control` vs `exp1_baseline` is reported as a check.

@@ -1,0 +1,42 @@
+{
+ "exact rotation state": {
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 154,
+  "diff": 0.048611111111111105,
+  "diff_ci95": [
+   -0.01041666666666663,
+   0.10416666666666669
+  ],
+  "mcnemar_p": 0.12491820036864003,
+  "discordant_base_only": 29,
+  "discordant_cond_only": 43,
+  "only_in_one": 0,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 34,
+   "PutEggplantInBasketScene-v0": 47,
+   "PutSpoonOnTableClothInScene-v0": 42,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 31
+  }
+ },
+ "history spacing 0.6 s": {
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 141,
+  "diff": 0.00347222222222221,
+  "diff_ci95": [
+   -0.03819444444444442,
+   0.045138888888888895
+  ],
+  "mcnemar_p": 1.0,
+  "discordant_base_only": 18,
+  "discordant_cond_only": 19,
+  "only_in_one": 0,
+  "per_task": {
+   "PutCarrotOnPlateInScene-v0": 26,
+   "PutEggplantInBasketScene-v0": 52,
+   "PutSpoonOnTableClothInScene-v0": 35,
+   "StackGreenCubeOnYellowCubeBakedTexInScene-v0": 28
+  }
+ }
+}

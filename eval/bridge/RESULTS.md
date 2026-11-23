@@ -492,10 +492,29 @@ Shared audit of the three models' Bridge data at training and evaluation:
 - the evaluation history is 4 consecutive frames (0.2 s apart), training
   used 0.6 s spacing (`f1_vla_policy.py` L116–127; chosen on one 24-episode
   run of an earlier checkpoint).
-Closed-loop test running (2026-11-22): `f1_vla_policy.py` options
-`F1_STATE_FRAME=bridge` (exact state, `R_sim · Tᵀ`) and
-`F1_HISTORY_SPACING=3` (history at t−9, −6, −3, 0 as in training; defaults
-unchanged), each 4 tasks × seeds 0–2 on the 100k checkpoint via
-`experiment1_ablation/closed_loop/closed_loop.slurm` (`CONDITION=baseline`,
-`TAG_SUFFIX=_e12statebridge` / `_e12hist3`), paired with
-`exp1_baseline_seed{0,1,2}`. Job ids: `LDA-1B/eval/bridge/experiment12_audit/jobs.txt`.
+**Closed loop (2026-11-23).** `experiment12_eval/analyze_exp12.py` (writes
+`exp12_summary.json`), 288 episodes each, paired with
+`exp1_baseline_seed{0,1,2}`; all 24 jobs `EVAL_EXIT=0`, logs confirm the
+option was on. `f1_vla_policy.py` options `F1_STATE_FRAME=bridge` and
+`F1_HISTORY_SPACING=3` (defaults unchanged), `CONDITION=baseline`,
+`TAG_SUFFIX=_e12statebridge` / `_e12hist3`.
+
+| condition | success | diff vs deployed [95% CI] | McNemar p | lost / gained |
+|---|---|---|---|---|
+| deployed (episode-relative state, consecutive history) | 140/288 | — | — | — |
+| exact rotation state (`R_sim · Tᵀ`) | 154/288 | +4.9 pp [−1.0, +10.4] | 0.13 | 29 / 43 |
+| history spacing 0.6 s (training) | 141/288 | +0.3 pp [−3.8, +4.5] | 1 | 18 / 19 |
+
+| task | deployed | exact state | history 0.6 s |
+|---|---|---|---|
+| Carrot | 25/72 | 34/72 | 26/72 |
+| Eggplant | 50/72 | 47/72 | 52/72 |
+| Spoon | 36/72 | 42/72 | 35/72 |
+| Stack | 29/72 | 31/72 | 28/72 |
+
+The exact state conversion points upward (+14 episodes) but its interval
+includes zero. The training history spacing makes no difference, so the
+summer choice of consecutive frames (7/24 vs 1/24, earlier checkpoint, one
+seed, and a variant that pushed a frame every 3rd step, so the newest history
+frame could be 2 steps old) did not hold up; F1-VLA is insensitive to the
+history spacing. Earlier results keep the deployed settings.
