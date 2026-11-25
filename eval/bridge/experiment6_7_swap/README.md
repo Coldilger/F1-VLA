@@ -88,14 +88,89 @@ the intervention), the replay check and timing.
   against the noise floor `d(own2, own)` 0.004–0.006 (another forecast
   sample).
 
-**Full runs queued 2026-11-23:** 14 conditions (table above, with `real:+1`)
-× 4 tasks × seeds 0–2, 24 episodes each; `bank:other_task` has no Eggplant
-donor (165 jobs, labels `f1e67_*` in `~/slurm_util/queue_done.txt`, 3 h
-limit, alternating H200 / H100). Eggplant episodes have 30 decisions and its
+**Full runs (2026-11-23 → 25):** 14 conditions × 4 tasks × seeds 0–2,
+24 episodes each, all 165 jobs `EVAL_EXIT=0`; `bank:other_task` has no
+Eggplant donor (216 episodes). Eggplant episodes have 30 decisions and its
 Carrot donor (`bank:other_scene`) only 15; later decisions use the donor's
-last one.
+last one. Labels `f1e67_*` in `~/slurm_util/queue_done.txt`.
 
-**Comparison.** The executed action differs from Experiment 1's baseline
-wrapper in RNG use (a second forecast is sampled each decision), so each
-condition is paired with `control` of the same task, seed and episode;
-`control` vs `exp1_baseline` is reported as a check.
+## Results (2026-11-25)
+
+`python analyze_exp67.py` → `exp67_summary.json`.
+
+**Check.** `control` reproduces the normal action exactly at every
+decision (`d(donor, own) = 0` over 5,400 decisions). Its closed-loop
+success, 124/288, is 5.6 pp below Experiment 1's `exp1_baseline` (140/288;
+[−12.2, +0.7], p = 0.11), which differs only in RNG use (a second forecast
+is sampled each decision). Within noise, but it is why every condition is
+paired with `control`, not with `exp1_baseline`.
+
+### Closed loop, each condition paired with `control` (same task, seed, episode)
+
+| condition | point | n | control | condition | diff [95% CI] | McNemar p (Holm) |
+|---|---|---|---|---|---|---|
+| own forecast, 2 decisions earlier | 6 | 288 | 124 | 121 | −1.0 pp [−5.2, +3.1] | 0.75 (1) |
+| own forecast, 1 decision earlier | 6 | 288 | 124 | 128 | +1.4 pp [−2.8, +5.6] | 0.63 (1) |
+| own forecast, 1 decision later ‡ | 6 | 288 | 124 | 125 | +0.3 pp [−4.2, +4.9] | 1 (1) |
+| own forecast, 2 decisions later ‡ | 6 | 288 | 124 | 127 | +1.0 pp [−3.5, +5.6] | 0.77 (1) |
+| same task, another episode | 1 | 288 | 124 | 131 | +2.4 pp [−2.1, +6.9] | 0.36 (1) |
+| same table, another task | 1 | 216 | 73 | 78 | +2.3 pp [−1.9, +6.5] | 0.41 (1) |
+| other scene | 1 | 288 | 124 | 125 | +0.3 pp [−4.2, +4.9] | 1 (1) |
+| real frame t−4 | 6 | 288 | 124 | 121 | −1.0 pp [−5.6, +3.5] | 0.77 (1) |
+| real frame t (now) | 6 | 288 | 124 | 129 | +1.7 pp [−2.1, +5.9] | 0.50 (1) |
+| real frame t+1 ‡ | 6 | 288 | 124 | 118 | −2.1 pp [−6.2, +2.1] | 0.42 (1) |
+| real frame t+3 (trained horizon, oracle) ‡ | 6 | 288 | 124 | 125 | +0.3 pp [−4.2, +4.9] | 1 (1) |
+| real frame t+8 ‡ | 6 | 288 | 124 | 129 | +1.7 pp [−2.8, +6.2] | 0.55 (1) |
+| real frame t+16 ‡ | 6 | 288 | 124 | 125 | +0.3 pp [−3.8, +4.5] | 1 (1) |
+
+‡ lookahead condition; see the replay caveat below. Restricted to Carrot
+and Stack, where the replay is exact at most decisions (144 episodes,
+control 37): own +1 / +2 → 40 / 38, real +1 / +3 / +8 / +16 → 36 / 41 / 40 / 43,
+all p ≥ 0.26.
+
+### Single decision (same state, same action noise)
+
+`d` = L2 distance between two decoded 4-step action chunks (normalised
+action space; for scale, a chunk's norm is 1.8 and consecutive decisions'
+chunks differ by 1.9). The floor is the change caused by sampling the own
+forecast again with another seed, which already changes 62% of the 14
+action-relevant tokens.
+
+| condition | d(donor, own) | floor | donor − floor [95% CI] | tokens changed | key / value change of the 29 positions |
+|---|---|---|---|---|---|
+| own −2 / −1 | 0.0038 / 0.0035 | 0.0038 / 0.0037 | ≈0 / −0.0002 | 65% / 62% | 0.03 / 0.08 |
+| own +1 / +2 ‡ | 0.0039 / 0.0040 | 0.0039 | ≈0 | 67% / 70% | 0.03–0.04 / 0.09 |
+| same task, other episode | 0.0040 | 0.0039 | +0.0001 [−0.0000, +0.0003] | 81% | 0.04 / 0.10 |
+| same table, other task | 0.0038 | 0.0038 | +0.0001 [−0.0001, +0.0002] | 85% | 0.04 / 0.10 |
+| other scene | 0.0048 | 0.0042 | **+0.0006 [+0.0002, +0.0010]** | 100% | 0.07 / 0.18 |
+| real −4 / 0 / +1 / +3 / +8 / +16 | 0.0037–0.0043 | 0.0039–0.0042 | −0.0002 … +0.0001 | 51–67% | 0.03 / 0.07–0.08 |
+
+**What this shows.**
+1. **Point 1 (how wrong must the forecast be).** No replacement changes
+   F1-VLA's success: 13 conditions, all within ±2.4 pp of `control`, none
+   significant even before correction. At a single decision a replaced
+   forecast moves the action exactly as much as resampling F1's own
+   forecast does, and both are ~0.2% of the action's size. Only a forecast
+   from the other scene (every token different, twice the change in the
+   action expert's keys and values) exceeds that floor, by 15%, still far
+   too little to change an outcome. This extends Experiment 1 (shuffle,
+   mean): the action expert reads the forecast positions, but not their
+   content.
+2. **Point 6 (does the timing matter).** Neither earlier forecasts nor real
+   frames from 4 steps ago up to 16 steps ahead, including the trained
+   horizon t+3 (an oracle of the true future frame), change success. Giving
+   F1-VLA the real future does not help, as in Experiment 2's open-loop
+   oracle.
+
+**Caveat: lookahead replay is not exact everywhere.** `replay_max_diff`
+(max |state difference| between the replay env and the main env) is 0 at
+every first decision of an episode but nonzero at 59–64% of later
+lookahead decisions: almost all Eggplant decisions and ~90% of Spoon ones,
+10–30% of late Carrot decisions, few Stack ones. The smoke runs (Carrot,
+episodes 0–1) did not show this. The likely cause is reusing one replay
+env across resets (decision 0 uses a freshly built env and is always
+exact); `diag_replay.py` / `diag_replay.slurm` test it (reused vs freshly
+built replay env, no model). For the ‡ conditions the donor is then the
+future of a nearby, not the identical, state. This does not affect the
+non-lookahead conditions, and on Carrot + Stack, where the replay is
+mostly exact, the lookahead conditions show no effect either.

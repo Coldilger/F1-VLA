@@ -518,3 +518,18 @@ summer choice of consecutive frames (7/24 vs 1/24, earlier checkpoint, one
 seed, and a variant that pushed a frame every 3rd step, so the newest history
 frame could be 2 steps old) did not hold up; F1-VLA is insensitive to the
 history spacing. Earlier results keep the deployed settings.
+
+## Graded and horizon-shifted forecast replacement (Experiments 6–7, 2026-11-25)
+
+Closed loop, 4 tasks × 24 episodes × seeds 0–2, each condition paired with a
+`control` that feeds F1's own forecast tokens back through the same hook
+(`experiment6_7_swap/README.md`, `analyze_exp67.py`). Control 124/288.
+Forecast from another episode of the same task 131/288 (+2.4 pp [−2.1, +6.9]),
+another task on the same table 78/216 (control 73/216), the other scene
+125/288; own forecast 1–2 decisions earlier or later and real frames t−4 …
+t+16 (incl. the trained horizon t+3) 118–129/288. None significant (all
+p ≥ 0.36). At a single decision a replaced forecast changes the action as
+much as resampling the own forecast (0.004, ~0.2% of the action's norm).
+Caveat: the lookahead ("later") conditions' replay env diverged from the main
+env at most Eggplant and Spoon decisions; on Carrot + Stack, where it is
+mostly exact, the result is the same.

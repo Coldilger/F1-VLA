@@ -1,0 +1,1183 @@
+{
+ "control_vs_exp1_baseline": {
+  "n": 288,
+  "base_successes": 140,
+  "cond_successes": 124,
+  "diff": -0.055555555555555525,
+  "diff_ci95": [
+   -0.12152777777777773,
+   0.006944444444444475
+  ],
+  "mcnemar_p": 0.11334435404342065,
+  "only_in_one": 0
+ },
+ "closed_loop": {
+  "own_m2": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 121,
+   "diff": -0.010416666666666685,
+   "diff_ci95": [
+    -0.05208333333333337,
+    0.03125
+   ],
+   "mcnemar_p": 0.7492586247608415,
+   "discordant_base_only": 21,
+   "discordant_cond_only": 18,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 17
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 47
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 35
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 22
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 69,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 69,
+     "consecutive_grasp": 68,
+     "src_on_target": 47
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 50,
+     "moved_wrong_obj": 2,
+     "is_src_obj_grasped": 48,
+     "consecutive_grasp": 37,
+     "src_on_target": 35
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 54,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 54,
+     "consecutive_grasp": 48,
+     "src_on_target": 22
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 51,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 42,
+     "consecutive_grasp": 36,
+     "src_on_target": 17
+    }
+   },
+   "holm_p": 1.0
+  },
+  "own_m1": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 128,
+   "diff": 0.01388888888888884,
+   "diff_ci95": [
+    -0.02777777777777779,
+    0.055555555555555525
+   ],
+   "mcnemar_p": 0.6271025701571489,
+   "discordant_base_only": 17,
+   "discordant_cond_only": 21,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 19
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 52
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 38
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 19
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 66,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 69,
+     "consecutive_grasp": 66,
+     "src_on_target": 52
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 52,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 42,
+     "consecutive_grasp": 39,
+     "src_on_target": 19
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 57,
+     "moved_wrong_obj": 2,
+     "is_src_obj_grasped": 45,
+     "consecutive_grasp": 38,
+     "src_on_target": 38
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 53,
+     "moved_wrong_obj": 2,
+     "is_src_obj_grasped": 51,
+     "consecutive_grasp": 47,
+     "src_on_target": 19
+    }
+   },
+   "holm_p": 1.0
+  },
+  "own_p1": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 125,
+   "diff": 0.00347222222222221,
+   "diff_ci95": [
+    -0.04166666666666663,
+    0.048611111111111105
+   ],
+   "mcnemar_p": 1.0,
+   "discordant_base_only": 21,
+   "discordant_cond_only": 22,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 19
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 47
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 38
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 21
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 70,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 67,
+     "consecutive_grasp": 65,
+     "src_on_target": 47
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 54,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 53,
+     "consecutive_grasp": 49,
+     "src_on_target": 21
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 50,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 41,
+     "consecutive_grasp": 35,
+     "src_on_target": 19
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 58,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 44,
+     "consecutive_grasp": 38,
+     "src_on_target": 38
+    }
+   },
+   "holm_p": 1.0
+  },
+  "own_p2": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 127,
+   "diff": 0.01041666666666663,
+   "diff_ci95": [
+    -0.03472222222222221,
+    0.05555555555555558
+   ],
+   "mcnemar_p": 0.765991824244793,
+   "discordant_base_only": 21,
+   "discordant_cond_only": 24,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 19
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 51
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 38
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 19
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 69,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 68,
+     "consecutive_grasp": 66,
+     "src_on_target": 51
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 55,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 40,
+     "consecutive_grasp": 35,
+     "src_on_target": 19
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 54,
+     "moved_wrong_obj": 3,
+     "is_src_obj_grasped": 43,
+     "consecutive_grasp": 38,
+     "src_on_target": 38
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 51,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 47,
+     "consecutive_grasp": 44,
+     "src_on_target": 19
+    }
+   },
+   "holm_p": 1.0
+  },
+  "bank_same_task": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 131,
+   "diff": 0.024305555555555525,
+   "diff_ci95": [
+    -0.020833333333333315,
+    0.06944444444444442
+   ],
+   "mcnemar_p": 0.3603776529357674,
+   "discordant_base_only": 18,
+   "discordant_cond_only": 25,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 24
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 51
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 35
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 21
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 71,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 70,
+     "consecutive_grasp": 70,
+     "src_on_target": 51
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 53,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 46,
+     "consecutive_grasp": 39,
+     "src_on_target": 35
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 53,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 50,
+     "consecutive_grasp": 49,
+     "src_on_target": 21
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 53,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 41,
+     "consecutive_grasp": 35,
+     "src_on_target": 24
+    }
+   },
+   "holm_p": 1.0
+  },
+  "bank_other_task": {
+   "n": 216,
+   "base_successes": 73,
+   "cond_successes": 78,
+   "diff": 0.02314814814814814,
+   "diff_ci95": [
+    -0.018518518518518545,
+    0.06481481481481483
+   ],
+   "mcnemar_p": 0.4048728942871094,
+   "discordant_base_only": 9,
+   "discordant_cond_only": 14,
+   "only_in_one": 72,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 19
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 36
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 23
+    }
+   },
+   "flags": {
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 55,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 54,
+     "consecutive_grasp": 50,
+     "src_on_target": 23
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 52,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 45,
+     "consecutive_grasp": 38,
+     "src_on_target": 19
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 55,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 44,
+     "consecutive_grasp": 38,
+     "src_on_target": 36
+    }
+   },
+   "holm_p": 1.0
+  },
+  "bank_other_scene": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 125,
+   "diff": 0.00347222222222221,
+   "diff_ci95": [
+    -0.04166666666666663,
+    0.048611111111111105
+   ],
+   "mcnemar_p": 1.0,
+   "discordant_base_only": 21,
+   "discordant_cond_only": 22,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 24
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 48
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 35
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 18
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 65,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 70,
+     "consecutive_grasp": 65,
+     "src_on_target": 48
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 54,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 46,
+     "consecutive_grasp": 39,
+     "src_on_target": 24
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 53,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 54,
+     "consecutive_grasp": 49,
+     "src_on_target": 18
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 54,
+     "moved_wrong_obj": 2,
+     "is_src_obj_grasped": 48,
+     "consecutive_grasp": 39,
+     "src_on_target": 35
+    }
+   },
+   "holm_p": 1.0
+  },
+  "real_m4": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 121,
+   "diff": -0.010416666666666685,
+   "diff_ci95": [
+    -0.05555555555555558,
+    0.034722222222222265
+   ],
+   "mcnemar_p": 0.765991824244793,
+   "discordant_base_only": 24,
+   "discordant_cond_only": 21,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 18
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 48
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 34
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 21
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 70,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 68,
+     "consecutive_grasp": 66,
+     "src_on_target": 48
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 49,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 51,
+     "consecutive_grasp": 45,
+     "src_on_target": 21
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 54,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 42,
+     "consecutive_grasp": 34,
+     "src_on_target": 34
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 51,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 43,
+     "consecutive_grasp": 38,
+     "src_on_target": 18
+    }
+   },
+   "holm_p": 1.0
+  },
+  "real_0": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 129,
+   "diff": 0.017361111111111105,
+   "diff_ci95": [
+    -0.02083333333333337,
+    0.05902777777777779
+   ],
+   "mcnemar_p": 0.49955983320251107,
+   "discordant_base_only": 15,
+   "discordant_cond_only": 20,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 21
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 55
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 36
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 17
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 69,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 70,
+     "consecutive_grasp": 69,
+     "src_on_target": 55
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 53,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 50,
+     "consecutive_grasp": 46,
+     "src_on_target": 17
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 57,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 45,
+     "consecutive_grasp": 40,
+     "src_on_target": 21
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 57,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 43,
+     "consecutive_grasp": 36,
+     "src_on_target": 36
+    }
+   },
+   "holm_p": 1.0
+  },
+  "real_p1": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 118,
+   "diff": -0.02083333333333337,
+   "diff_ci95": [
+    -0.0625,
+    0.020833333333333315
+   ],
+   "mcnemar_p": 0.417692190836533,
+   "discordant_base_only": 22,
+   "discordant_cond_only": 16,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 19
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 48
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 34
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 17
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 71,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 69,
+     "consecutive_grasp": 64,
+     "src_on_target": 48
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 58,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 44,
+     "consecutive_grasp": 35,
+     "src_on_target": 19
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 53,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 52,
+     "consecutive_grasp": 48,
+     "src_on_target": 17
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 48,
+     "moved_wrong_obj": 2,
+     "is_src_obj_grasped": 39,
+     "consecutive_grasp": 33,
+     "src_on_target": 34
+    }
+   },
+   "holm_p": 1.0
+  },
+  "real_p3": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 125,
+   "diff": 0.00347222222222221,
+   "diff_ci95": [
+    -0.04166666666666663,
+    0.048611111111111105
+   ],
+   "mcnemar_p": 1.0,
+   "discordant_base_only": 20,
+   "discordant_cond_only": 21,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 20
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 50
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 34
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 21
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 69,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 70,
+     "consecutive_grasp": 69,
+     "src_on_target": 50
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 55,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 51,
+     "consecutive_grasp": 47,
+     "src_on_target": 21
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 56,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 45,
+     "consecutive_grasp": 42,
+     "src_on_target": 20
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 55,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 44,
+     "consecutive_grasp": 36,
+     "src_on_target": 34
+    }
+   },
+   "holm_p": 1.0
+  },
+  "real_p8": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 129,
+   "diff": 0.017361111111111105,
+   "diff_ci95": [
+    -0.02777777777777779,
+    0.0625
+   ],
+   "mcnemar_p": 0.5514843298025198,
+   "discordant_base_only": 20,
+   "discordant_cond_only": 25,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 20
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 53
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 36
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 20
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 68,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 71,
+     "consecutive_grasp": 69,
+     "src_on_target": 53
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 55,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 52,
+     "consecutive_grasp": 46,
+     "src_on_target": 20
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 55,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 47,
+     "consecutive_grasp": 41,
+     "src_on_target": 36
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 55,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 40,
+     "consecutive_grasp": 39,
+     "src_on_target": 20
+    }
+   },
+   "holm_p": 1.0
+  },
+  "real_p16": {
+   "n": 288,
+   "base_successes": 124,
+   "cond_successes": 125,
+   "diff": 0.00347222222222221,
+   "diff_ci95": [
+    -0.03819444444444442,
+    0.045138888888888895
+   ],
+   "mcnemar_p": 1.0,
+   "discordant_base_only": 19,
+   "discordant_cond_only": 20,
+   "only_in_one": 0,
+   "per_task": {
+    "PutCarrotOnPlateInScene-v0": {
+     "n": 72,
+     "base": 18,
+     "cond": 20
+    },
+    "PutEggplantInBasketScene-v0": {
+     "n": 72,
+     "base": 51,
+     "cond": 48
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "n": 72,
+     "base": 36,
+     "cond": 34
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "n": 72,
+     "base": 19,
+     "cond": 23
+    }
+   },
+   "flags": {
+    "PutEggplantInBasketScene-v0": {
+     "moved_correct_obj": 70,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 70,
+     "consecutive_grasp": 68,
+     "src_on_target": 48
+    },
+    "PutSpoonOnTableClothInScene-v0": {
+     "moved_correct_obj": 51,
+     "moved_wrong_obj": 3,
+     "is_src_obj_grasped": 43,
+     "consecutive_grasp": 39,
+     "src_on_target": 34
+    },
+    "PutCarrotOnPlateInScene-v0": {
+     "moved_correct_obj": 57,
+     "moved_wrong_obj": 0,
+     "is_src_obj_grasped": 42,
+     "consecutive_grasp": 39,
+     "src_on_target": 20
+    },
+    "StackGreenCubeOnYellowCubeBakedTexInScene-v0": {
+     "moved_correct_obj": 53,
+     "moved_wrong_obj": 1,
+     "is_src_obj_grasped": 51,
+     "consecutive_grasp": 48,
+     "src_on_target": 23
+    }
+   },
+   "holm_p": 1.0
+  }
+ },
+ "single_decision": {
+  "control": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.0,
+   "d_floor": 0.0037899134379484976,
+   "diff": -0.0037899134379484976,
+   "diff_ci95": [
+    -0.00400958858250373,
+    -0.003615605688593388
+   ],
+   "tok_diff_donor": 0.0,
+   "tok_diff_seed": 0.6164103835978837,
+   "kv_k": 0.0,
+   "kv_v": 0.0,
+   "replay_max_diff": 0.0,
+   "replay_inexact_share": null
+  },
+  "own_m2": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.003785854922885105,
+   "d_floor": 0.003831173968838239,
+   "diff": -4.5319045953133515e-05,
+   "diff_ci95": [
+    -0.00020351640065604845,
+    0.00015537606970071833
+   ],
+   "tok_diff_donor": 0.654224537037037,
+   "tok_diff_seed": 0.6120453042328042,
+   "kv_k": 0.03363835366820131,
+   "kv_v": 0.0847115344196652,
+   "replay_max_diff": 0.0,
+   "replay_inexact_share": null
+  },
+  "own_m1": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.00354868232177439,
+   "d_floor": 0.0037479225220320386,
+   "diff": -0.00019924020025764887,
+   "diff_ci95": [
+    -0.00025415877641770984,
+    -0.0001430264970672902
+   ],
+   "tok_diff_donor": 0.6216848544973544,
+   "tok_diff_seed": 0.6115079365079364,
+   "kv_k": 0.0323769321255708,
+   "kv_v": 0.08161326196910493,
+   "replay_max_diff": 0.0,
+   "replay_inexact_share": null
+  },
+  "own_p1": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.003897746182742088,
+   "d_floor": 0.003893843584133989,
+   "diff": 3.902598608099796e-06,
+   "diff_ci95": [
+    -9.771236570082286e-05,
+    9.957349298861962e-05
+   ],
+   "tok_diff_donor": 0.6655588624338624,
+   "tok_diff_seed": 0.6159804894179894,
+   "kv_k": 0.03378693524903727,
+   "kv_v": 0.085377384977592,
+   "replay_max_diff": 106.60167241096497,
+   "replay_inexact_share": 0.6012962962962963
+  },
+  "own_p2": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.0039813569045724796,
+   "d_floor": 0.0038844253462971042,
+   "diff": 9.693155827537539e-05,
+   "diff_ci95": [
+    -9.302246535399826e-05,
+    0.0002651966777018431
+   ],
+   "tok_diff_donor": 0.7013144841269842,
+   "tok_diff_seed": 0.612797619047619,
+   "kv_k": 0.03666032736769105,
+   "kv_v": 0.09227004454885811,
+   "replay_max_diff": 114.20459747314453,
+   "replay_inexact_share": 0.6183333333333333
+  },
+  "bank_same_task": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.003993641234747311,
+   "d_floor": 0.0038870736381930466,
+   "diff": 0.00010656759655426463,
+   "diff_ci95": [
+    -3.721860540550823e-05,
+    0.00028375446059591785
+   ],
+   "tok_diff_donor": 0.8084490740740742,
+   "tok_diff_seed": 0.6183531746031746,
+   "kv_k": 0.03853585841394089,
+   "kv_v": 0.09683964653351437,
+   "replay_max_diff": 0.0,
+   "replay_inexact_share": null
+  },
+  "bank_other_task": {
+   "episodes": 216,
+   "decisions": 3240,
+   "d_donor": 0.0038111125130528287,
+   "d_floor": 0.003760056585874006,
+   "diff": 5.105592717882246e-05,
+   "diff_ci95": [
+    -6.608221163782059e-05,
+    0.00019574624904680041
+   ],
+   "tok_diff_donor": 0.8485229276895944,
+   "tok_diff_seed": 0.6144400352733685,
+   "kv_k": 0.04035880039736695,
+   "kv_v": 0.10127162582912343,
+   "replay_max_diff": 0.0,
+   "replay_inexact_share": null
+  },
+  "bank_other_scene": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.004789976616585691,
+   "d_floor": 0.004211069623488583,
+   "diff": 0.0005789069930971081,
+   "diff_ci95": [
+    0.00024696176972207066,
+    0.000982817153461063
+   ],
+   "tok_diff_donor": 0.9952959656084656,
+   "tok_diff_seed": 0.6175181878306878,
+   "kv_k": 0.07366312837847144,
+   "kv_v": 0.17644541543595102,
+   "replay_max_diff": 0.0,
+   "replay_inexact_share": null
+  },
+  "real_m4": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.003803079707439691,
+   "d_floor": 0.004000381005432616,
+   "diff": -0.00019730129799292495,
+   "diff_ci95": [
+    -0.00040491482351239096,
+    -5.105519787691638e-05
+   ],
+   "tok_diff_donor": 0.5825314153439154,
+   "tok_diff_seed": 0.6167245370370371,
+   "kv_k": 0.029677440576722298,
+   "kv_v": 0.07462916774267438,
+   "replay_max_diff": 0.0,
+   "replay_inexact_share": null
+  },
+  "real_0": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.0037442928890312845,
+   "d_floor": 0.003918818815940608,
+   "diff": -0.0001745259269093232,
+   "diff_ci95": [
+    -0.000351896845019534,
+    -2.7692152391157126e-05
+   ],
+   "tok_diff_donor": 0.5130291005291006,
+   "tok_diff_seed": 0.6139798280423281,
+   "kv_k": 0.027708289245043646,
+   "kv_v": 0.0694434017364624,
+   "replay_max_diff": 0.0,
+   "replay_inexact_share": null
+  },
+  "real_p1": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.004276469360869399,
+   "d_floor": 0.004168448398949868,
+   "diff": 0.00010802096191953209,
+   "diff_ci95": [
+    -8.066350115398197e-05,
+    0.0003176114059233777
+   ],
+   "tok_diff_donor": 0.5698330026455026,
+   "tok_diff_seed": 0.6223379629629631,
+   "kv_k": 0.029176011991425665,
+   "kv_v": 0.07337660821859673,
+   "replay_max_diff": 85.14232635498047,
+   "replay_inexact_share": 0.5896296296296296
+  },
+  "real_p3": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.003847837275747291,
+   "d_floor": 0.004016107196110642,
+   "diff": -0.00016826992036334963,
+   "diff_ci95": [
+    -0.00034256371870267484,
+    -2.558466213048194e-05
+   ],
+   "tok_diff_donor": 0.5927496693121692,
+   "tok_diff_seed": 0.6153687169312169,
+   "kv_k": 0.02962838498004599,
+   "kv_v": 0.07461431068356278,
+   "replay_max_diff": 87.1325626373291,
+   "replay_inexact_share": 0.5935185185185186
+  },
+  "real_p8": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.0038958385338008624,
+   "d_floor": 0.003952237839136312,
+   "diff": -5.6399305335448636e-05,
+   "diff_ci95": [
+    -0.00015439340336578658,
+    3.300342372447766e-05
+   ],
+   "tok_diff_donor": 0.6361772486772487,
+   "tok_diff_seed": 0.6124669312169312,
+   "kv_k": 0.03109937278007578,
+   "kv_v": 0.0784033978370427,
+   "replay_max_diff": 117.29623463749886,
+   "replay_inexact_share": 0.6137037037037038
+  },
+  "real_p16": {
+   "episodes": 288,
+   "decisions": 5400,
+   "d_donor": 0.003950555637938022,
+   "d_floor": 0.0041147472965180724,
+   "diff": -0.00016419165858005058,
+   "diff_ci95": [
+    -0.00036727143624207037,
+    -1.3719398263371404e-05
+   ],
+   "tok_diff_donor": 0.6691137566137565,
+   "tok_diff_seed": 0.6152777777777777,
+   "kv_k": 0.03247269040495569,
+   "kv_v": 0.08178171603667354,
+   "replay_max_diff": 176.3196008889936,
+   "replay_inexact_share": 0.6425925925925926
+  }
+ },
+ "closed_loop_carrot_stack": {
+  "own_p1": {
+   "n": 144,
+   "base_successes": 37,
+   "cond_successes": 40,
+   "diff": 0.02083333333333337,
+   "diff_ci95": [
+    -0.02777777777777779,
+    0.07638888888888887
+   ],
+   "mcnemar_p": 0.60723876953125
+  },
+  "own_p2": {
+   "n": 144,
+   "base_successes": 37,
+   "cond_successes": 38,
+   "diff": 0.006944444444444475,
+   "diff_ci95": [
+    -0.05555555555555555,
+    0.06944444444444445
+   ],
+   "mcnemar_p": 1.0
+  },
+  "real_p1": {
+   "n": 144,
+   "base_successes": 37,
+   "cond_successes": 36,
+   "diff": -0.00694444444444442,
+   "diff_ci95": [
+    -0.06944444444444442,
+    0.04861111111111116
+   ],
+   "mcnemar_p": 1.0
+  },
+  "real_p3": {
+   "n": 144,
+   "base_successes": 37,
+   "cond_successes": 41,
+   "diff": 0.02777777777777779,
+   "diff_ci95": [
+    -0.027777777777777762,
+    0.08333333333333334
+   ],
+   "mcnemar_p": 0.454498291015625
+  },
+  "real_p8": {
+   "n": 144,
+   "base_successes": 37,
+   "cond_successes": 40,
+   "diff": 0.02083333333333337,
+   "diff_ci95": [
+    -0.03472222222222221,
+    0.0763888888888889
+   ],
+   "mcnemar_p": 0.629058837890625
+  },
+  "real_p16": {
+   "n": 144,
+   "base_successes": 37,
+   "cond_successes": 43,
+   "diff": 0.041666666666666685,
+   "diff_ci95": [
+    -0.020833333333333315,
+    0.10416666666666669
+   ],
+   "mcnemar_p": 0.26317596435546875
+  }
+ }
+}
