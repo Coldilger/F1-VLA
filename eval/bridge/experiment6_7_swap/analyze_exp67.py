@@ -58,8 +58,18 @@ CONDS = {
 }
 
 
+LOOKAHEAD = ("own_p1", "own_p2", "real_p1", "real_p3", "real_p8", "real_p16")
+
+
+def sfx(tag: str) -> str:
+    """Lookahead conditions were rerun with a freshly built replay env (tag suffix
+    _fresh, 2026-11-25); the first runs reused one replay env (README, caveat).
+    The rerun is used once its records exist."""
+    return "_fresh" if tag in LOOKAHEAD and (RECORDS / f"exp67_{tag}_seed0_fresh").exists() else ""
+
+
 def outcomes(tag: str):
-    return load(re.compile(rf"^(\S+?)_exp67_{tag}_seed(\d+)$"))
+    return load(re.compile(rf"^(\S+?)_exp67_{tag}_seed(\d+){sfx(tag)}$"))
 
 
 def holm(ps: dict[str, float]) -> dict[str, float]:
@@ -75,7 +85,7 @@ def decisions(tag: str):
     """Per-episode means of the single-decision quantities, keyed (task, seed, episode)."""
     eps = {}
     for seed in (0, 1, 2):
-        root = RECORDS / f"exp67_{tag}_seed{seed}"
+        root = RECORDS / f"exp67_{tag}_seed{seed}{sfx(tag)}"
         for f in sorted(root.glob("*/episode_*.npz")):
             recs = np.load(f, allow_pickle=True)["records"]
             d = lambda a, b: float(np.linalg.norm(a - b, axis=-1).mean())
@@ -88,7 +98,7 @@ def decisions(tag: str):
 
 def replay_share(tag: str) -> float | None:
     """Share of lookahead decisions whose replay env did not match the main env (> 1e-6)."""
-    v = [r["replay_max_diff"] for f in RECORDS.glob(f"exp67_{tag}_seed[012]/*/episode_*.npz")
+    v = [r["replay_max_diff"] for f in RECORDS.glob(f"exp67_{tag}_seed[012]{sfx(tag)}/*/episode_*.npz")
          for r in np.load(f, allow_pickle=True)["records"] if "replay_max_diff" in r]
     return float(np.mean(np.array(v) > 1e-6)) if v else None
 
@@ -106,7 +116,8 @@ def boot_diff(eps: dict, n_boot: int = 10000, seed: int = 0):
 def main() -> None:
     control, _ = outcomes("control")
     base, _ = load(re.compile(r"^(\S+?)_exp1_baseline_seed(\d+)$"))
-    summary = {"control_vs_exp1_baseline": None, "closed_loop": {}, "single_decision": {}}
+    print("lookahead runs: " + ", ".join(f"{t}{sfx(t) or ' (reused replay env)'}" for t in LOOKAHEAD) + "\n")
+    summary = {"lookahead_suffix": {t: sfx(t) for t in LOOKAHEAD}, "control_vs_exp1_baseline": None, "closed_loop": {}, "single_decision": {}}
 
     r = paired_report(base, control)
     summary["control_vs_exp1_baseline"] = {k: r[k] for k in ("n", "base_successes", "cond_successes", "diff", "diff_ci95",
@@ -149,7 +160,7 @@ def main() -> None:
     print("\n### Lookahead conditions, Carrot + Stack only (replay exact at most decisions)\n")
     print("| condition | n | control | condition | diff [95% CI] | McNemar p |\n|---|---|---|---|---|---|")
     summary["closed_loop_carrot_stack"] = {}
-    for tag in ("own_p1", "own_p2", "real_p1", "real_p3", "real_p8", "real_p16"):
+    for tag in LOOKAHEAD:
         r = paired_report(sub(control), sub(outcomes(tag)[0]))
         lo, hi = r["diff_ci95"]
         summary["closed_loop_carrot_stack"][tag] = {k: r[k] for k in ("n", "base_successes", "cond_successes", "diff",

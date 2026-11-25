@@ -170,7 +170,13 @@ lookahead decisions: almost all Eggplant decisions and ~90% of Spoon ones,
 episodes 0–1) did not show this. The likely cause is reusing one replay
 env across resets (decision 0 uses a freshly built env and is always
 exact); `diag_replay.py` / `diag_replay.slurm` test it (reused vs freshly
-built replay env, no model). For the ‡ conditions the donor is then the
+built replay env, no model). **Rerun (queued 2026-11-25):** `EnvTap.replay` now builds a
+fresh replay env for every lookahead; the 6 lookahead conditions are rerun
+(72 jobs, tag suffix `_fresh`, labels `f1e67f_*`), after a smoke run
+(Eggplant, `real:+3`, episodes 0–1, suffix `_freshsmoke_*`) must show
+`replay_max_diff = 0` at every decision (`~/slurm_util/gate_exp67fresh.sh`).
+`analyze_exp67.py` uses the `_fresh` runs once they exist; the numbers above
+are from the first runs. For the ‡ conditions the donor is then the
 future of a nearby, not the identical, state. This does not affect the
 non-lookahead conditions, and on Carrot + Stack, where the replay is
 mostly exact, the lookahead conditions show no effect either.

@@ -127,10 +127,15 @@ class EnvTap:
 
     def replay(self):
         """Second env at the main env's current state; returns (env, obs,
-        max |state difference| against the main env)."""
-        if self._replay is None:
-            builder, name, kwargs = self.build
-            self._replay = builder(name, **kwargs)
+        max |state difference| against the main env).
+
+        The replay env is built fresh for every lookahead. Reusing one env
+        across resets (the runs before 2026-11-25) left it in a different
+        state than the main env at most Eggplant and Spoon decisions after
+        the first; a freshly built env was always exact (decision 0)."""
+        self._close_replay()
+        builder, name, kwargs = self.build
+        self._replay = builder(name, **kwargs)
         env = self._replay
         obs, _ = env.reset(options=self.reset_options)
         for a in self.actions:
