@@ -1,0 +1,22 @@
+== PutEggplantInBasketScene-v0
+step   4: reused 0  fresh 0
+step   8: reused 0.000248  fresh 0
+step  12: reused 0.000652  fresh 0
+step  16: reused 0.000235  fresh 0
+step  20: reused 0.000243  fresh 0
+step  24: reused 0.00111  fresh 0
+step  28: reused 1.82e-06  fresh 0
+step  32: reused 0.00111  fresh 0
+step  36: reused 0.000852  fresh 0
+step  40: reused 0  fresh 0
+== PutSpoonOnTableClothInScene-v0
+step   4: reused 0  fresh 0
+step   8: reused 5.13e-06  fresh 0
+step  12: reused 4.86e-05  fresh 0
+step  16: reused 1.42e-06  fresh 0
+step  20: reused 4.86e-05  fresh 0
+step  24: reused 4.86e-05  fresh 0
+step  28: reused 4.86e-05  fresh 0
+step  32: reused 1.42e-06  fresh 0
+step  36: reused 4.86e-05  fresh 0
+step  40: reused 1.42e-06  fresh 0

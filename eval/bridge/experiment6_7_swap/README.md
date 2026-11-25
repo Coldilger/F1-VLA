@@ -169,8 +169,12 @@ lookahead decisions: almost all Eggplant decisions and ~90% of Spoon ones,
 10–30% of late Carrot decisions, few Stack ones. The smoke runs (Carrot,
 episodes 0–1) did not show this. The likely cause is reusing one replay
 env across resets (decision 0 uses a freshly built env and is always
-exact); `diag_replay.py` / `diag_replay.slurm` test it (reused vs freshly
-built replay env, no model). **Rerun (queued 2026-11-25):** `EnvTap.replay` now builds a
+exact). **Confirmed by `diag_replay.py`** (job 792657, `diag-792657.out`;
+no model, fixed pseudo-random actions, replay every 4 steps over 40 steps,
+episode 0): a reused replay env differs from the main env by up to 1.1e-3
+(Eggplant) and 4.9e-5 (Spoon) in state already at the first replays, and
+these small differences grow through contacts in the closed loop; a
+freshly built env matches exactly (0) every time. **Rerun (queued 2026-11-25):** `EnvTap.replay` now builds a
 fresh replay env for every lookahead; the 6 lookahead conditions are rerun
 (72 jobs, tag suffix `_fresh`, labels `f1e67f_*`), after a smoke run
 (Eggplant, `real:+3`, episodes 0–1, suffix `_freshsmoke_*`) must show
