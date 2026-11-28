@@ -519,7 +519,7 @@ seed, and a variant that pushed a frame every 3rd step, so the newest history
 frame could be 2 steps old) did not hold up; F1-VLA is insensitive to the
 history spacing. Earlier results keep the deployed settings.
 
-## Graded and horizon-shifted forecast replacement (Experiments 6–7, 2026-11-25)
+## Graded and horizon-shifted forecast replacement (Experiments 6–7, 2026-11-25; lookahead rerun 2026-11-28)
 
 Closed loop, 4 tasks × 24 episodes × seeds 0–2, each condition paired with a
 `control` that feeds F1's own forecast tokens back through the same hook
@@ -527,9 +527,12 @@ Closed loop, 4 tasks × 24 episodes × seeds 0–2, each condition paired with a
 Forecast from another episode of the same task 131/288 (+2.4 pp [−2.1, +6.9]),
 another task on the same table 78/216 (control 73/216), the other scene
 125/288; own forecast 1–2 decisions earlier or later and real frames t−4 …
-t+16 (incl. the trained horizon t+3) 118–129/288. None significant (all
+t+16 (incl. the trained horizon t+3) 119–129/288. None significant (all
 p ≥ 0.36). At a single decision a replaced forecast changes the action as
 much as resampling the own forecast (0.004, ~0.2% of the action's norm).
-Caveat: the lookahead ("later") conditions' replay env diverged from the main
-env at most Eggplant and Spoon decisions; on Carrot + Stack, where it is
-mostly exact, the result is the same.
+The lookahead ("later") conditions were rerun (2026-11-28) after a replay fix:
+the first runs reused one replay env across resets, which diverged from the
+main env at most Eggplant and Spoon decisions (`diag_replay.py`); the rerun
+builds a fresh replay env per lookahead and is exact at all 32,400 lookahead
+decisions. The numbers above are from the rerun; the first runs gave the same
+picture.

@@ -153,20 +153,22 @@ def main() -> None:
         pt = reps[tag]["per_task"]
         print(f"| `{tag}` | " + " | ".join(f"{pt[t]['cond']}/{pt[t]['n']}" if t in pt else "—" for t in tasks) + " |")
 
-    # replay divergence (diag_replay.py): the lookahead future is exact at most Carrot and Stack
-    # decisions but not at Eggplant and Spoon ones, so the lookahead conditions are also given for these two
-    keep = ("PutCarrotOnPlateInScene-v0", "StackGreenCubeOnYellowCubeBakedTexInScene-v0")
-    sub = lambda d: {k: v for k, v in d.items() if k[0] in keep}
-    print("\n### Lookahead conditions, Carrot + Stack only (replay exact at most decisions)\n")
-    print("| condition | n | control | condition | diff [95% CI] | McNemar p |\n|---|---|---|---|---|---|")
-    summary["closed_loop_carrot_stack"] = {}
-    for tag in LOOKAHEAD:
-        r = paired_report(sub(control), sub(outcomes(tag)[0]))
-        lo, hi = r["diff_ci95"]
-        summary["closed_loop_carrot_stack"][tag] = {k: r[k] for k in ("n", "base_successes", "cond_successes", "diff",
-                                                                      "diff_ci95", "mcnemar_p")}
-        print(f"| `{tag}` | {r['n']} | {r['base_successes']} | {r['cond_successes']} | {100 * r['diff']:+.1f} pp "
-              f"[{100 * lo:+.1f}, {100 * hi:+.1f}] | {r['mcnemar_p']:.3g} |")
+    # Only for the first (reused-replay-env) runs: their lookahead future was exact at most Carrot and
+    # Stack decisions but not at Eggplant and Spoon ones, so these two tasks were also given alone.
+    # The _fresh reruns are exact everywhere and need no subset.
+    if not all(sfx(t) for t in LOOKAHEAD):
+        keep = ("PutCarrotOnPlateInScene-v0", "StackGreenCubeOnYellowCubeBakedTexInScene-v0")
+        sub = lambda d: {k: v for k, v in d.items() if k[0] in keep}
+        print("\n### Lookahead conditions, Carrot + Stack only (replay exact at most decisions)\n")
+        print("| condition | n | control | condition | diff [95% CI] | McNemar p |\n|---|---|---|---|---|---|")
+        summary["closed_loop_carrot_stack"] = {}
+        for tag in LOOKAHEAD:
+            r = paired_report(sub(control), sub(outcomes(tag)[0]))
+            lo, hi = r["diff_ci95"]
+            summary["closed_loop_carrot_stack"][tag] = {k: r[k] for k in ("n", "base_successes", "cond_successes", "diff",
+                                                                          "diff_ci95", "mcnemar_p")}
+            print(f"| `{tag}` | {r['n']} | {r['base_successes']} | {r['cond_successes']} | {100 * r['diff']:+.1f} pp "
+                  f"[{100 * lo:+.1f}, {100 * hi:+.1f}] | {r['mcnemar_p']:.3g} |")
 
     print("\n## Single decision (same states, same action noise)\n")
     print("| condition | decisions | d(donor, own) | floor d(own2, own) | donor − floor [95% CI] | tokens changed: donor / reseed | key / value change | replay inexact |")

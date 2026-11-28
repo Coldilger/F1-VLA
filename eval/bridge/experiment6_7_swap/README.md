@@ -94,7 +94,7 @@ Eggplant donor (216 episodes). Eggplant episodes have 30 decisions and its
 Carrot donor (`bank:other_scene`) only 15; later decisions use the donor's
 last one. Labels `f1e67_*` in `~/slurm_util/queue_done.txt`.
 
-## Results (2026-11-25)
+## Results (2026-11-25; lookahead conditions rerun 2026-11-28)
 
 `python analyze_exp67.py` → `exp67_summary.json`.
 
@@ -111,22 +111,21 @@ paired with `control`, not with `exp1_baseline`.
 |---|---|---|---|---|---|---|
 | own forecast, 2 decisions earlier | 6 | 288 | 124 | 121 | −1.0 pp [−5.2, +3.1] | 0.75 (1) |
 | own forecast, 1 decision earlier | 6 | 288 | 124 | 128 | +1.4 pp [−2.8, +5.6] | 0.63 (1) |
-| own forecast, 1 decision later ‡ | 6 | 288 | 124 | 125 | +0.3 pp [−4.2, +4.9] | 1 (1) |
-| own forecast, 2 decisions later ‡ | 6 | 288 | 124 | 127 | +1.0 pp [−3.5, +5.6] | 0.77 (1) |
+| own forecast, 1 decision later ‡ | 6 | 288 | 124 | 126 | +0.7 pp [−3.5, +4.9] | 0.88 (1) |
+| own forecast, 2 decisions later ‡ | 6 | 288 | 124 | 124 | +0.0 pp [−4.9, +4.9] | 1 (1) |
 | same task, another episode | 1 | 288 | 124 | 131 | +2.4 pp [−2.1, +6.9] | 0.36 (1) |
 | same table, another task | 1 | 216 | 73 | 78 | +2.3 pp [−1.9, +6.5] | 0.41 (1) |
 | other scene | 1 | 288 | 124 | 125 | +0.3 pp [−4.2, +4.9] | 1 (1) |
 | real frame t−4 | 6 | 288 | 124 | 121 | −1.0 pp [−5.6, +3.5] | 0.77 (1) |
 | real frame t (now) | 6 | 288 | 124 | 129 | +1.7 pp [−2.1, +5.9] | 0.50 (1) |
-| real frame t+1 ‡ | 6 | 288 | 124 | 118 | −2.1 pp [−6.2, +2.1] | 0.42 (1) |
-| real frame t+3 (trained horizon, oracle) ‡ | 6 | 288 | 124 | 125 | +0.3 pp [−4.2, +4.9] | 1 (1) |
-| real frame t+8 ‡ | 6 | 288 | 124 | 129 | +1.7 pp [−2.8, +6.2] | 0.55 (1) |
+| real frame t+1 ‡ | 6 | 288 | 124 | 119 | −1.7 pp [−5.9, +2.4] | 0.52 (1) |
+| real frame t+3 (trained horizon, oracle) ‡ | 6 | 288 | 124 | 123 | −0.3 pp [−4.5, +4.2] | 1 (1) |
+| real frame t+8 ‡ | 6 | 288 | 124 | 123 | −0.3 pp [−4.5, +4.2] | 1 (1) |
 | real frame t+16 ‡ | 6 | 288 | 124 | 125 | +0.3 pp [−3.8, +4.5] | 1 (1) |
 
-‡ lookahead condition; see the replay caveat below. Restricted to Carrot
-and Stack, where the replay is exact at most decisions (144 episodes,
-control 37): own +1 / +2 → 40 / 38, real +1 / +3 / +8 / +16 → 36 / 41 / 40 / 43,
-all p ≥ 0.26.
+‡ lookahead condition, from the rerun with an exact replay (tag suffix
+`_fresh`, see "Lookahead replay" below); `replay_max_diff = 0` at all
+32,400 lookahead decisions.
 
 ### Single decision (same state, same action noise)
 
@@ -139,11 +138,11 @@ action-relevant tokens.
 | condition | d(donor, own) | floor | donor − floor [95% CI] | tokens changed | key / value change of the 29 positions |
 |---|---|---|---|---|---|
 | own −2 / −1 | 0.0038 / 0.0035 | 0.0038 / 0.0037 | ≈0 / −0.0002 | 65% / 62% | 0.03 / 0.08 |
-| own +1 / +2 ‡ | 0.0039 / 0.0040 | 0.0039 | ≈0 | 67% / 70% | 0.03–0.04 / 0.09 |
+| own +1 / +2 ‡ | 0.0038 / 0.0041 | 0.0038 / 0.0040 | ≈0 | 65% / 69% | 0.03–0.04 / 0.08–0.09 |
 | same task, other episode | 0.0040 | 0.0039 | +0.0001 [−0.0000, +0.0003] | 81% | 0.04 / 0.10 |
 | same table, other task | 0.0038 | 0.0038 | +0.0001 [−0.0001, +0.0002] | 85% | 0.04 / 0.10 |
 | other scene | 0.0048 | 0.0042 | **+0.0006 [+0.0002, +0.0010]** | 100% | 0.07 / 0.18 |
-| real −4 / 0 / +1 / +3 / +8 / +16 | 0.0037–0.0043 | 0.0039–0.0042 | −0.0002 … +0.0001 | 51–67% | 0.03 / 0.07–0.08 |
+| real −4 / 0 / +1 / +3 / +8 / +16 | 0.0037–0.0041 | 0.0038–0.0041 | −0.0002 … 0.0000 | 51–66% | 0.03 / 0.07–0.08 |
 
 **What this shows.**
 1. **Point 1 (how wrong must the forecast be).** No replacement changes
@@ -162,25 +161,21 @@ action-relevant tokens.
    F1-VLA the real future does not help, as in Experiment 2's open-loop
    oracle.
 
-**Caveat: lookahead replay is not exact everywhere.** `replay_max_diff`
-(max |state difference| between the replay env and the main env) is 0 at
-every first decision of an episode but nonzero at 59–64% of later
-lookahead decisions: almost all Eggplant decisions and ~90% of Spoon ones,
-10–30% of late Carrot decisions, few Stack ones. The smoke runs (Carrot,
-episodes 0–1) did not show this. The likely cause is reusing one replay
-env across resets (decision 0 uses a freshly built env and is always
-exact). **Confirmed by `diag_replay.py`** (job 792657, `diag-792657.out`;
-no model, fixed pseudo-random actions, replay every 4 steps over 40 steps,
-episode 0): a reused replay env differs from the main env by up to 1.1e-3
-(Eggplant) and 4.9e-5 (Spoon) in state already at the first replays, and
-these small differences grow through contacts in the closed loop; a
-freshly built env matches exactly (0) every time. **Rerun (queued 2026-11-25):** `EnvTap.replay` now builds a
-fresh replay env for every lookahead; the 6 lookahead conditions are rerun
-(72 jobs, tag suffix `_fresh`, labels `f1e67f_*`), after a smoke run
-(Eggplant, `real:+3`, episodes 0–1, suffix `_freshsmoke_*`) must show
-`replay_max_diff = 0` at every decision (`~/slurm_util/gate_exp67fresh.sh`).
-`analyze_exp67.py` uses the `_fresh` runs once they exist; the numbers above
-are from the first runs. For the ‡ conditions the donor is then the
-future of a nearby, not the identical, state. This does not affect the
-non-lookahead conditions, and on Carrot + Stack, where the replay is
-mostly exact, the lookahead conditions show no effect either.
+**Lookahead replay (fixed, rerun 2026-11-28).** In the first runs
+(2026-11-25) `replay_max_diff` (max |state difference| between the replay
+env and the main env) was 0 at every first decision of an episode but
+nonzero at 59–64% of later lookahead decisions (almost all Eggplant, ~90%
+of Spoon, 10–30% of late Carrot, few Stack decisions), so the donor was the
+future of a nearby, not the identical, state. Cause: one replay env reused
+across resets. Confirmed by `diag_replay.py` (job 792657,
+`diag-792657.out`; no model, fixed pseudo-random actions, replay every 4
+steps over 40 steps, episode 0): a reused replay env differs from the main
+env by up to 1.1e-3 (Eggplant) and 4.9e-5 (Spoon) already at the first
+replays, and a freshly built env matches exactly (0) every time. Fix:
+`EnvTap.replay` builds a fresh replay env for every lookahead. The 6
+lookahead conditions were rerun (72 jobs, tag suffix `_fresh`, labels
+`f1e67f_*`, after a smoke gate, `~/slurm_util/gate_exp67fresh.sh`);
+the rerun's replay is exact at every decision, and the tables above use
+it. The conclusions did not change: the first runs had given the same
+picture (all within −2.1…+1.7 pp, p ≥ 0.42; on Carrot + Stack alone, where
+the old replay was mostly exact, also no effect).
